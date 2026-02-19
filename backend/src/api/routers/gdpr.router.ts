@@ -311,14 +311,6 @@ router.post('/erase/:userId', async (req, res) => {
     [requestId, userId, 'erasure', 'pending', new Date(), JSON.stringify({ gracePeriodDays })]
   );
 
-  // Soft delete the user immediately (blocks login, but data is preserved until grace period ends)
-  await query(
-    `UPDATE users
-     SET is_deleted = TRUE, deleted_at = NOW()
-     WHERE id = $1`,
-    [userId]
-  );
-
   res.status(202).json({
     success: true,
     data: {

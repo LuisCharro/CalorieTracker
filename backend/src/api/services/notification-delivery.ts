@@ -3,10 +3,14 @@
  * Sends notifications to users via configured channels
  */
 
+import nodemailer from 'nodemailer';
+import { query } from '../../db/pool.js';
+
 interface NotificationSettings {
   channels: string[];
   reminderTimes: string[];
   timezone: string;
+  email?: string;
 }
 
 interface NotificationPayload {
@@ -88,18 +92,42 @@ export class NotificationDeliveryService {
   }
 
   /**
-   * Get user's notification settings
+   * Get user's notification settings from database
    */
   private async getUserNotificationSettings(
     userId: string
   ): Promise<NotificationSettings | null> {
-    // This would query the database in a real implementation
-    // For now, return a mock implementation
-    return {
-      channels: [],
-      reminderTimes: [],
-      timezone: 'UTC',
-    };
+    try {
+      // Get notification settings
+      const settingsResult = await query(
+        `SELECT channels, reminder_times, timezone
+         FROM notification_settings
+         WHERE user_id = $1`,
+        [userId]
+      );
+
+      if (settingsResult.rows.length === 0) {
+        return null;
+      }
+
+      // Get user's email
+      const userResult = await query(
+        `SELECT email FROM users WHERE id = $1`,
+        [userId]
+      );
+
+      const email = userResult.rows.length > 0 ? userResult.rows[0].email : undefined;
+
+      return {
+        channels: settingsResult.rows[0].channels || [],
+        reminderTimes: settingsResult.rows[0].reminder_times || [],
+        timezone: settingsResult.rows[0].timezone || 'UTC',
+        email,
+      };
+    } catch (error) {
+      console.error(`[Notification] Error fetching settings for user ${userId}:`, error);
+      return null;
+    }
   }
 
   /**
@@ -119,23 +147,54 @@ export class NotificationDeliveryService {
       };
     }
 
+    // Check if user has email
+    if (!settings.email) {
+      return {
+        channel: 'email',
+        success: false,
+        error: 'User has no email address',
+      };
+    }
+
     try {
-      // In a real implementation, you would:
-      // 1. Get user's email from database
-      // 2. Use nodemailer to send the email
-      // 3. Return success/failure status
+      // Create email transporter
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || '587', 10),
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASSWORD,
+        },
+      });
 
-      console.log(`[Notification] Would send email to user ${userId}:`, notification.title);
+      // Send email
+      const info = await transporter.sendMail({
+        from: process.env.SMTP_FROM,
+        to: settings.email,
+        subject: notification.title,
+        text: notification.body,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">${notification.title}</h2>
+            <p style="color: #666; line-height: 1.6;">${notification.body}</p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="font-size: 12px; color: #999;">
+              This is an automated notification from CalorieTracker.<br>
+              If you didn't expect this message, please ignore it.
+            </p>
+          </div>
+        `,
+      });
 
-      // Placeholder for actual email sending
-      // const transporter = nodemailer.createTransporter({ ... });
-      // await transporter.sendMail({ ... });
+      console.log(`[Notification] Email sent to user ${userId}:`, info.messageId);
 
       return {
         channel: 'email',
         success: true,
       };
     } catch (error) {
+      console.error(`[Notification] Error sending email to user ${userId}:`, error);
       return {
         channel: 'email',
         success: false,
@@ -145,26 +204,30 @@ export class NotificationDeliveryService {
   }
 
   /**
-   * Send in-app notification
+   * Send in-app notification (store in database)
    */
   private async sendInAppNotification(
     userId: string,
     notification: NotificationPayload
   ): Promise<NotificationResult> {
     try {
-      // In a real implementation, you would store notifications in a database table
-      // For now, we can use the security_events table as a log
+      const { v4: uuidv4 } = await import('uuid');
 
-      console.log(`[Notification] In-app notification for user ${userId}:`, notification.title);
+      // Store notification in database
+      await query(
+        `INSERT INTO notifications (id, user_id, type, title, body, data, read, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+        [uuidv4(), userId, notification.type, notification.title, notification.body, JSON.stringify(notification.data || {}), false]
+      );
 
-      // Placeholder: Log as security event for now
-      // await query(`INSERT INTO notifications ...`, [userId, notification]);
+      console.log(`[Notification] In-app notification stored for user ${userId}:`, notification.title);
 
       return {
         channel: 'in-app',
         success: true,
       };
     } catch (error) {
+      console.error(`[Notification] Error storing in-app notification for user ${userId}:`, error);
       return {
         channel: 'in-app',
         success: false,

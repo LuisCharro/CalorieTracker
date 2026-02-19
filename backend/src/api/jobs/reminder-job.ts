@@ -15,6 +15,45 @@ const getReminderJobInterval = (): number => {
 };
 
 /**
+ * Get current time in user's timezone
+ */
+function getUserTime(userTimezone: string): Date {
+  const now = new Date();
+
+  // If timezone is provided, convert to that timezone
+  if (userTimezone && userTimezone !== 'UTC') {
+    try {
+      const options: Intl.DateTimeFormatOptions = {
+        timeZone: userTimezone,
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: false,
+      };
+
+      const formatter = new Intl.DateTimeFormat('en-US', options);
+      const parts = formatter.formatToParts(now);
+
+      const year = parseInt(parts.find(p => p.type === 'year')?.value || '0', 10);
+      const month = parseInt(parts.find(p => p.type === 'month')?.value || '0', 10) - 1;
+      const day = parseInt(parts.find(p => p.type === 'day')?.value || '0', 10);
+      const hour = parseInt(parts.find(p => p.type === 'hour')?.value || '0', 10);
+      const minute = parseInt(parts.find(p => p.type === 'minute')?.value || '0', 10);
+
+      return new Date(year, month, day, hour, minute);
+    } catch (error) {
+      console.error(`[Reminder Job] Error converting timezone ${userTimezone}:`, error);
+      return now;
+    }
+  }
+
+  return now;
+}
+
+/**
  * Check if it's time to send a reminder based on user's timezone and reminder times
  */
 function shouldSendReminder(
@@ -22,35 +61,41 @@ function shouldSendReminder(
   reminderTimes: string[],
   lastReminderSentAt: Date | null
 ): boolean {
-  // For MVP simplicity, we'll use a basic implementation
-  // In production, this would properly handle timezones and reminder schedules
-
-  const now = new Date();
-  const userHour = parseInt(now.getHours().toString(), 10);
-
   // If no reminder times set, don't send
   if (reminderTimes.length === 0) {
     return false;
   }
 
-  // Check if current hour matches any reminder time
+  const userTime = getUserTime(userTimezone);
+  const currentHour = userTime.getHours();
+  const currentMinute = userTime.getMinutes();
+
+  // Check if current time matches any reminder time (within the same hour)
   const reminderHours = reminderTimes.map(time => {
     const [hour] = time.split(':');
     return parseInt(hour, 10);
   });
 
-  if (!reminderHours.includes(userHour)) {
+  if (!reminderHours.includes(currentHour)) {
     return false;
   }
 
-  // Check if we already sent a reminder today
+  // Check if we already sent a reminder today (in user's timezone)
   if (lastReminderSentAt) {
     const lastReminderDate = new Date(lastReminderSentAt);
-    const daysSinceLastReminder = Math.floor(
-      (now.getTime() - lastReminderDate.getTime()) / (1000 * 60 * 60 * 24)
-    );
+    const lastReminderTime = getUserTime(userTimezone);
+    lastReminderDate.setHours(lastReminderTime.getHours());
+    lastReminderDate.setMinutes(lastReminderTime.getMinutes());
 
-    if (daysSinceLastReminder < 1) {
+    // Compare days
+    const nowDate = new Date(userTime);
+    nowDate.setHours(0, 0, 0, 0);
+
+    const lastReminderDateMidnight = new Date(userTime);
+    lastReminderDateMidnight.setHours(0, 0, 0, 0);
+    lastReminderDateMidnight.setDate(lastReminderDateMidnight.getDate() - 1);
+
+    if (lastReminderDateMidnight.getTime() === nowDate.getTime()) {
       return false;
     }
   }

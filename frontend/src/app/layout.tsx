@@ -4,6 +4,7 @@ import './globals.css';
 import { AuthProvider } from '../core/auth';
 import { MSWProvider } from './msw-provider';
 import { NetworkStatusMonitor, OfflineQueueIndicator } from '../components/offline';
+import { OfflineQueueProvider } from '../core/contexts/OfflineQueueContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -26,9 +27,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <MSWProvider>
           <AuthProvider>
-            <NetworkStatusMonitor />
-            {children}
-            <OfflineQueueIndicator />
+            <OfflineQueueProvider>
+              <NetworkStatusMonitor />
+              {children}
+              <OfflineQueueIndicator />
+            </OfflineQueueProvider>
           </AuthProvider>
         </MSWProvider>
       </body>

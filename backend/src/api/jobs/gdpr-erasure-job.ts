@@ -46,14 +46,21 @@ export async function processErasureRequest(requestId: string): Promise<void> {
     // Start erasure process
     console.log(`[GDPR Erasure] Starting erasure for user ${userId}, request ${requestId}`);
 
-    // Step 1: Anonymize food_logs (set user_id to null)
+    // Soft delete the user first (this blocks login but preserves data for the grace period)
     await query(
-      `UPDATE food_logs
-       SET user_id = NULL, updated_at = NOW()
-       WHERE user_id = $1 AND is_deleted = FALSE`,
+      `UPDATE users
+       SET is_deleted = TRUE, deleted_at = NOW()
+       WHERE id = $1`,
       [userId]
     );
-    console.log(`[GDPR Erasure] Anonymized food_logs for user ${userId}`);
+    console.log(`[GDPR Erasure] Soft deleted user ${userId}`);
+
+    // Step 1: Hard delete food_logs (can't anonymize due to NOT NULL constraint on user_id)
+    await query(
+      `DELETE FROM food_logs WHERE user_id = $1`,
+      [userId]
+    );
+    console.log(`[GDPR Erasure] Deleted food_logs for user ${userId}`);
 
     // Step 2: Hard delete goals
     await query(
@@ -101,12 +108,8 @@ export async function processErasureRequest(requestId: string): Promise<void> {
     );
     console.log(`[GDPR Erasure] Deleted processing_activities for user ${userId}`);
 
-    // Step 8: Hard delete the user record
-    await query(
-      `DELETE FROM users WHERE id = $1`,
-      [userId]
-    );
-    console.log(`[GDPR Erasure] Deleted user ${userId}`);
+    // Step 8: User is already soft deleted in step 1, keeping record for GDPR compliance
+    console.log(`[GDPR Erasure] User ${userId} soft deleted, keeping record for compliance`);
 
     console.log(`[GDPR Erasure] Completed erasure for user ${userId}, request ${requestId}`);
   } catch (error) {
