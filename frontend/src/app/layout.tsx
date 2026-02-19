@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '../core/auth';
 import { MSWProvider } from './msw-provider';
+import { NetworkStatusMonitor, OfflineQueueIndicator } from '../components/offline';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -25,7 +26,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <MSWProvider>
           <AuthProvider>
+            <NetworkStatusMonitor />
             {children}
+            <OfflineQueueIndicator />
           </AuthProvider>
         </MSWProvider>
       </body>
