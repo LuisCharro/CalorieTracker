@@ -25,11 +25,8 @@ export default {
     'node_modules/(?!(pg)/)',
   ],
   testMatch: ['**/__tests__/**/*.test.ts', '**/?(*.)+(spec|test).ts'],
-  // Only run unit tests and api-health by default
-  // Note: auth-endpoints and logs-endpoints can be enabled when error handling is stable
   testPathIgnorePatterns: [
     '/node_modules/',
-    'src/__tests__/integration/logs-endpoints.test.ts',
   ],
   collectCoverageFrom: [
     'src/**/*.ts',

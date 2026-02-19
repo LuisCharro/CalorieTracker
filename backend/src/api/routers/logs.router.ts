@@ -23,10 +23,11 @@ const router = Router();
 /**
  * GET /api/logs
  * Get food logs with pagination and filtering
+ * Returns items grouped by meal type when groupByMeal=true
  */
 router.get('/', async (req, res) => {
   const params = validateQuery(foodLogsQuerySchema, req.query);
-  const { userId } = req.query; // TODO: Extract from auth session
+  const { userId, groupByMeal } = req.query;
 
   if (!userId || typeof userId !== 'string') {
     return res.status(400).json({
@@ -59,7 +60,6 @@ router.get('/', async (req, res) => {
     queryParams.push(params.endDate);
   }
 
-  // Get total count
   const countResult = await query(
     `SELECT COUNT(*) as total
      FROM food_logs
@@ -69,21 +69,84 @@ router.get('/', async (req, res) => {
 
   const total = parseInt(countResult.rows[0].total, 10);
 
-  // Get paginated results
   const result = await query(
     `SELECT id, user_id, food_name, brand_name, quantity, unit, meal_type, nutrition, logged_at, created_at, updated_at
      FROM food_logs
      WHERE ${whereClauses.join(' AND ')}
-     ORDER BY logged_at DESC
+     ORDER BY logged_at DESC, created_at ASC
      LIMIT $${paramIndex++} OFFSET $${paramIndex++}`,
     [...queryParams, params.pageSize, offset]
   );
 
   const totalPages = Math.ceil(total / params.pageSize);
 
+  interface FoodLogRow {
+    id: string;
+    user_id: string;
+    food_name: string;
+    brand_name: string | null;
+    quantity: string | number;
+    unit: string;
+    meal_type: string;
+    nutrition: { calories?: number; protein?: number; carbohydrates?: number; fat?: number };
+    logged_at: Date;
+    created_at: Date;
+    updated_at: Date;
+  }
+
+  const items = result.rows.map((row): FoodLogRow => ({
+    ...row,
+    quantity: parseFloat(row.quantity as string),
+  }));
+
+  if (groupByMeal === 'true') {
+    const grouped: Record<string, FoodLogRow[]> = {
+      breakfast: [],
+      lunch: [],
+      dinner: [],
+      snack: [],
+    };
+
+    const mealTotals: Record<string, { count: number; calories: number }> = {
+      breakfast: { count: 0, calories: 0 },
+      lunch: { count: 0, calories: 0 },
+      dinner: { count: 0, calories: 0 },
+      snack: { count: 0, calories: 0 },
+    };
+
+    for (const item of items) {
+      const mealType = item.meal_type as string;
+      if (grouped[mealType]) {
+        grouped[mealType].push(item);
+        mealTotals[mealType].count++;
+        mealTotals[mealType].calories += item.nutrition?.calories || 0;
+      }
+    }
+
+    return res.json({
+      success: true,
+      data: grouped,
+      mealTotals,
+      meta: {
+        timestamp: new Date().toISOString(),
+        page: params.page,
+        pageSize: params.pageSize,
+        total,
+        totalPages,
+      },
+    });
+  }
+
+  const totalCalories = items.reduce((sum, item) => sum + (item.nutrition?.calories || 0), 0);
+  const totalProtein = items.reduce((sum, item) => sum + (item.nutrition?.protein || 0), 0);
+
   res.json({
     success: true,
-    data: result.rows,
+    data: items,
+    summary: {
+      totalCalories,
+      totalProtein,
+    },
     meta: {
       timestamp: new Date().toISOString(),
       page: params.page,
@@ -97,6 +160,7 @@ router.get('/', async (req, res) => {
 /**
  * GET /api/logs/today
  * Get today's food logs grouped by meal type
+ * Returns full item details with calorie totals per meal
  */
 router.get('/today', async (req, res) => {
   const { userId } = req.query;
@@ -117,30 +181,154 @@ router.get('/today', async (req, res) => {
      WHERE user_id = $1
        AND DATE(logged_at) = CURRENT_DATE
        AND is_deleted = FALSE
-     ORDER BY meal_type, logged_at ASC`,
+     ORDER BY meal_type, created_at ASC`,
     [userId]
   );
 
-  // Group by meal type
-  const grouped: Record<string, typeof result.rows> = {
-    breakfast: [],
-    lunch: [],
-    dinner: [],
-    snack: [],
+  interface FoodLogRow {
+    id: string;
+    user_id: string;
+    food_name: string;
+    brand_name: string | null;
+    quantity: string | number;
+    unit: string;
+    meal_type: string;
+    nutrition: { calories?: number; protein?: number; carbohydrates?: number; fat?: number };
+    logged_at: Date;
+    created_at: Date;
+    updated_at: Date;
+  }
+
+  interface MealGroup {
+    items: FoodLogRow[];
+    itemCount: number;
+    totalCalories: number;
+    totalProtein: number;
+  }
+
+  const grouped: Record<string, MealGroup> = {
+    breakfast: { items: [], itemCount: 0, totalCalories: 0, totalProtein: 0 },
+    lunch: { items: [], itemCount: 0, totalCalories: 0, totalProtein: 0 },
+    dinner: { items: [], itemCount: 0, totalCalories: 0, totalProtein: 0 },
+    snack: { items: [], itemCount: 0, totalCalories: 0, totalProtein: 0 },
   };
 
   for (const row of result.rows) {
     const mealType = row.meal_type as string;
     if (grouped[mealType]) {
-      grouped[mealType].push(row);
+      const calories = row.nutrition?.calories || 0;
+      const protein = row.nutrition?.protein || 0;
+      
+      grouped[mealType].items.push({
+        ...row,
+        quantity: parseFloat(row.quantity as string),
+      });
+      grouped[mealType].itemCount++;
+      grouped[mealType].totalCalories += calories;
+      grouped[mealType].totalProtein += protein;
     }
   }
+
+  const totalCount = result.rows.length;
+  const totalCalories = Object.values(grouped).reduce((sum, meal) => sum + meal.totalCalories, 0);
+  const totalProtein = Object.values(grouped).reduce((sum, meal) => sum + meal.totalProtein, 0);
 
   res.json({
     success: true,
     data: grouped,
+    summary: {
+      totalItems: totalCount,
+      totalCalories,
+      totalProtein,
+      mealsWithItems: Object.entries(grouped).filter(([_, m]) => m.itemCount > 0).map(([type]) => type),
+    },
     meta: {
       timestamp: new Date().toISOString(),
+      date: new Date().toISOString().split('T')[0],
+      userId,
+    },
+  });
+});
+
+/**
+ * GET /api/logs/meal/:mealType
+ * Get all items for a specific meal type on a given date
+ */
+router.get('/meal/:mealType', async (req, res) => {
+  const { mealType } = req.params;
+  const { userId, date } = req.query;
+
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'validation_error',
+        message: 'userId is required',
+      },
+    });
+  }
+
+  const validMealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
+  if (!validMealTypes.includes(mealType)) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'validation_error',
+        message: `Invalid mealType. Must be one of: ${validMealTypes.join(', ')}`,
+      },
+    });
+  }
+
+  const targetDate = date || new Date().toISOString().split('T')[0];
+
+  const result = await query(
+    `SELECT id, user_id, food_name, brand_name, quantity, unit, meal_type, nutrition, logged_at, created_at, updated_at
+     FROM food_logs
+     WHERE user_id = $1
+       AND meal_type = $2
+       AND DATE(logged_at) = $3
+       AND is_deleted = FALSE
+     ORDER BY created_at ASC`,
+    [userId, mealType, targetDate]
+  );
+
+  interface FoodLogRow {
+    id: string;
+    user_id: string;
+    food_name: string;
+    brand_name: string | null;
+    quantity: number;
+    unit: string;
+    meal_type: string;
+    nutrition: { calories?: number; protein?: number; carbohydrates?: number; fat?: number };
+    logged_at: Date;
+    created_at: Date;
+    updated_at: Date;
+  }
+
+  const items: FoodLogRow[] = result.rows.map(row => ({
+    ...row,
+    quantity: parseFloat(row.quantity as string),
+  }));
+
+  const totalCalories = items.reduce((sum, item) => sum + (item.nutrition?.calories || 0), 0);
+  const totalProtein = items.reduce((sum, item) => sum + (item.nutrition?.protein || 0), 0);
+
+  res.json({
+    success: true,
+    data: {
+      mealType,
+      date: targetDate,
+      items,
+      itemCount: items.length,
+      totals: {
+        calories: totalCalories,
+        protein: totalProtein,
+      },
+    },
+    meta: {
+      timestamp: new Date().toISOString(),
+      userId,
     },
   });
 });
@@ -331,6 +519,7 @@ router.patch('/:foodLogId', async (req, res) => {
 /**
  * POST /api/logs/batch
  * Create multiple food logs for a meal (batch operation)
+ * Returns complete item details for all created items
  */
 router.post('/batch', async (req, res) => {
   const { userId, mealName, mealType, items, loggedAt } = req.body;
@@ -366,14 +555,41 @@ router.post('/batch', async (req, res) => {
   }
 
   const loggedAtValue = loggedAt ? new Date(loggedAt) : new Date();
-  const results: Array<{ id: string; foodName: string; success: boolean; error?: string }> = [];
+  const createdAt = new Date();
+  
+  interface BatchItemResult {
+    id: string;
+    userId: string;
+    foodName: string;
+    brandName: string | null;
+    quantity: number;
+    unit: string;
+    mealType: string;
+    nutrition: Record<string, number>;
+    loggedAt: Date;
+    createdAt: Date;
+    updatedAt: Date;
+    success: boolean;
+    error?: string;
+  }
+  
+  const results: BatchItemResult[] = [];
 
   for (const item of items) {
     try {
       if (!item.foodName || !item.quantity || !item.unit || !item.nutrition) {
         results.push({
           id: '',
+          userId,
           foodName: item.foodName || 'Unknown',
+          brandName: item.brandName || null,
+          quantity: item.quantity || 0,
+          unit: item.unit || '',
+          mealType,
+          nutrition: item.nutrition || {},
+          loggedAt: loggedAtValue,
+          createdAt,
+          updatedAt: createdAt,
           success: false,
           error: 'Missing required fields: foodName, quantity, unit, nutrition',
         });
@@ -381,9 +597,10 @@ router.post('/batch', async (req, res) => {
       }
 
       const id = uuidv4();
-      await query(
+      const insertResult = await query(
         `INSERT INTO food_logs (id, user_id, food_name, brand_name, quantity, unit, meal_type, nutrition, logged_at, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         RETURNING id, user_id, food_name, brand_name, quantity, unit, meal_type, nutrition, logged_at, created_at, updated_at`,
         [
           id,
           userId,
@@ -394,20 +611,39 @@ router.post('/batch', async (req, res) => {
           mealType,
           JSON.stringify(item.nutrition),
           loggedAtValue,
-          new Date(),
-          new Date(),
+          createdAt,
+          createdAt,
         ]
       );
 
+      const row = insertResult.rows[0];
       results.push({
-        id,
-        foodName: item.foodName,
+        id: row.id,
+        userId: row.user_id,
+        foodName: row.food_name,
+        brandName: row.brand_name,
+        quantity: parseFloat(row.quantity),
+        unit: row.unit,
+        mealType: row.meal_type,
+        nutrition: row.nutrition,
+        loggedAt: row.logged_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
         success: true,
       });
     } catch (error) {
       results.push({
         id: '',
+        userId,
         foodName: item.foodName || 'Unknown',
+        brandName: item.brandName || null,
+        quantity: item.quantity || 0,
+        unit: item.unit || '',
+        mealType,
+        nutrition: item.nutrition || {},
+        loggedAt: loggedAtValue,
+        createdAt,
+        updatedAt: createdAt,
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
@@ -416,6 +652,10 @@ router.post('/batch', async (req, res) => {
 
   const successCount = results.filter(r => r.success).length;
   const errorCount = results.filter(r => !r.success).length;
+  const createdItems = results.filter(r => r.success);
+
+  const totalCalories = createdItems.reduce((sum, item) => sum + (item.nutrition?.calories || 0), 0);
+  const totalProtein = createdItems.reduce((sum, item) => sum + (item.nutrition?.protein || 0), 0);
 
   res.status(201).json({
     success: errorCount === 0,
@@ -428,9 +668,14 @@ router.post('/batch', async (req, res) => {
         created: successCount,
         errors: errorCount,
       },
+      totals: {
+        calories: totalCalories,
+        protein: totalProtein,
+      },
     },
     meta: {
       timestamp: new Date().toISOString(),
+      userId,
     },
   });
 });

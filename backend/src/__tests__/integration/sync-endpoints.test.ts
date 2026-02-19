@@ -366,7 +366,7 @@ describe('Offline Queue / Sync Endpoints', () => {
   });
 
   describe('POST /api/logs/batch - Multi-item meal logging', () => {
-    it('should create multiple food logs in a batch', async () => {
+    it('should create multiple food logs in a batch and return complete details', async () => {
       const response = await request(app)
         .post('/api/logs/batch')
         .send({
@@ -405,10 +405,17 @@ describe('Offline Queue / Sync Endpoints', () => {
       expect(response.body.data.summary.created).toBe(3);
       expect(response.body.data.summary.errors).toBe(0);
       expect(response.body.data.items).toHaveLength(3);
+      expect(response.body.data.totals.calories).toBe(594);
+      expect(response.body.data.totals.protein).toBeCloseTo(36.2, 1);
 
       for (const item of response.body.data.items) {
         expect(item.success).toBe(true);
         expect(item.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+        expect(item.foodName).toBeDefined();
+        expect(item.quantity).toBeDefined();
+        expect(item.unit).toBeDefined();
+        expect(item.nutrition).toBeDefined();
+        expect(item.userId).toBe(testUserId);
       }
 
       const result = await query(
