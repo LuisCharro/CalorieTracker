@@ -3,7 +3,7 @@
  * Syncs offline operations with the backend
  */
 
-import { getQueue, updateOperationStatus, removeFromQueue, getOperationCounts } from './offline-queue.service.js';
+import { getQueue, updateOperationStatus, removeFromQueue, getOperationCounts } from './offline-queue.service';
 
 export interface SyncResult {
   operationId: string;
@@ -11,6 +11,7 @@ export interface SyncResult {
   status: 'success' | 'conflict' | 'error';
   error?: string;
   serverData?: Record<string, unknown>;
+  data?: Record<string, unknown>;
 }
 
 export interface SyncResponse {
@@ -60,7 +61,10 @@ export async function syncOfflineQueue(userId: string): Promise<SyncResponse> {
 
     // Process results
     for (const result of syncResponse.results) {
-      const operation = pendingOperations.find(op => op.type === result.type && compareOperationData(op.data, result.data));
+      const operation = pendingOperations.find(op =>
+        op.type === result.type &&
+        (result.data ? compareOperationData(op.data, result.data) : true)
+      );
 
       if (operation) {
         if (result.status === 'success') {

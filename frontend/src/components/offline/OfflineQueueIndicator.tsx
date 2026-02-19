@@ -6,7 +6,8 @@
  */
 
 import { useState, useEffect } from 'react';
-import { getSyncStatus, getOperationCounts } from '@/core/api/services/sync.service';
+import { getSyncStatus } from '@/core/api/services/sync.service';
+import { getOperationCounts } from '@/core/api/services/offline-queue.service';
 import { OfflineQueueStatus } from './OfflineQueueStatus';
 
 export function OfflineQueueIndicator() {
