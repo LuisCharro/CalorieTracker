@@ -155,6 +155,7 @@ Use this folder as the **mandatory pre-merge process** for AI-assisted implement
 6. Video-specific details in `03_video_research/learnings/`
 7. Onboarding sequence policy in `03_video_research/onboarding_reference/01_first_run_onboarding_sequence.md`
 8. Onboarding detailed behavior notes in `03_video_research/onboarding_reference/02_screen_by_screen_observations.md`
+9. `06_execution_plan.md` — consolidated next batch of backend/frontend tasks + automation housekeeping.
 
 ## Notes
 
