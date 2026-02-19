@@ -12,6 +12,8 @@ import logsRouter from './routers/logs.router.js';
 import goalsRouter from './routers/goals.router.js';
 import gdprRouter from './routers/gdpr.router.js';
 import settingsRouter from './routers/settings.router.js';
+import notificationsRouter from './routers/notifications.router.js';
+import syncRouter from './routers/sync.router.js';
 
 // Load environment variables
 dotenv.config();
@@ -45,6 +47,8 @@ app.use('/api/logs', idempotencyMiddleware, logsRouter);
 app.use('/api/goals', idempotencyMiddleware, goalsRouter);
 app.use('/api/gdpr', gdprRouter);
 app.use('/api/settings', idempotencyMiddleware, settingsRouter);
+app.use('/api/notifications', idempotencyMiddleware, notificationsRouter);
+app.use('/api/sync', syncRouter);
 
 // 404 handler (must be after all routes)
 app.use(notFoundHandler);

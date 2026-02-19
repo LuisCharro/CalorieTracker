@@ -4,6 +4,7 @@
  */
 
 import { getQueue, updateOperationStatus, removeFromQueue, getOperationCounts } from './offline-queue.service';
+export { getQueue, updateOperationStatus, removeFromQueue, getOperationCounts };
 
 export interface SyncResult {
   operationId: string;

@@ -2,8 +2,19 @@
  * Test setup and utilities
  */
 
+import dotenv from 'dotenv';
+import path from 'path';
 import { Pool } from 'pg';
 import { closePool } from '../db/pool.js';
+
+// Load environment variables for tests (favor .env.local)
+const envBase = path.resolve(__dirname, '../..');
+const envLocalPath = path.join(envBase, '.env.local');
+dotenv.config({ path: envLocalPath });
+
+if (!process.env.DATABASE_URL) {
+  dotenv.config({ path: path.join(envBase, '.env') });
+}
 
 // Test database pool
 let testPool: Pool | null = null;
