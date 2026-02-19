@@ -15,12 +15,41 @@ import type {
   PaginatedResponse,
 } from '../../contracts/types';
 
+export interface ParsedFood {
+  quantity: number;
+  unit: string;
+  foodName: string;
+  nutrition: {
+    calories: number;
+    protein: number;
+    carbohydrates: number;
+    fat: number;
+    fiber: number;
+  };
+}
+
 export type LogsResponse = ApiSuccessResponse<FoodLog> | ApiErrorResponse;
 export type TodayResponse = ApiSuccessResponse<TodayLogsResponse> | ApiErrorResponse;
 export type PaginatedLogsResponse = PaginatedResponse<FoodLog>;
 
 export class LogsService {
   private readonly basePath = '/api/logs';
+
+  /**
+   * Parse food text and extract nutrition information
+   */
+  async parseFoodText(text: string): Promise<ParsedFood> {
+    const response = await apiClient.post<ApiSuccessResponse<ParsedFood>>(
+      `${this.basePath}/parse`,
+      { text }
+    );
+
+    if (!response.success) {
+      throw new Error('Failed to parse food text');
+    }
+
+    return response.data;
+  }
 
   /**
    * Get food logs with pagination and filtering

@@ -6,6 +6,7 @@
 import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { query } from '../../db/pool.js';
+import { parseFoodText } from '../utils/nutrition-parser.js';
 import {
   validateBody,
   validateParams,
@@ -142,6 +143,43 @@ router.get('/today', async (req, res) => {
       timestamp: new Date().toISOString(),
     },
   });
+});
+
+/**
+ * POST /api/logs/parse
+ * Parse food text and extract nutrition information
+ */
+router.post('/parse', async (req, res) => {
+  const { text } = req.body;
+
+  if (!text || typeof text !== 'string') {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'validation_error',
+        message: 'text is required and must be a string',
+      },
+    });
+  }
+
+  try {
+    const parsed = parseFoodText(text);
+    res.json({
+      success: true,
+      data: parsed,
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'parse_error',
+        message: (error as Error).message || 'Failed to parse food text',
+      },
+    });
+  }
 });
 
 /**

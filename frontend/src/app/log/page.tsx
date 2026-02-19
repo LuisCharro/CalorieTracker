@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Button, Input, Card, CardHeader, CardBody } from '../../shared/components';
+import { Button, Input, Card, CardHeader, CardBody, Alert } from '../../shared/components';
 import { Layout, Header, Navigation } from '../../shared/layout';
 import { useAuth } from '../../core/auth';
 import { logsService } from '../../core/api/services';
@@ -14,9 +13,11 @@ export default function LogPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [foodText, setFoodText] = useState('');
-  const [suggestions, setSuggestions] = useState<any[]>([]);
   const [selectedMeal, setSelectedMeal] = useState<MealType>(MealType.LUNCH);
   const [isLoading, setIsLoading] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
+  const [parsedNutrition, setParsedNutrition] = useState<any | null>(null);
+  const [error, setError] = useState('');
 
   const mealTypes = [
     { value: 'breakfast', label: 'Breakfast', icon: '☀️' },
@@ -25,18 +26,43 @@ export default function LogPage() {
     { value: 'snack', label: 'Snack', icon: '🍎' },
   ];
 
+  const handleFoodTextChange = async (value: string) => {
+    setFoodText(value);
+    setError('');
+
+    // Parse food text when user stops typing (debounced)
+    if (value.trim().length > 3) {
+      setIsParsing(true);
+      try {
+        const parsed = await logsService.parseFoodText(value);
+        setParsedNutrition(parsed.nutrition);
+      } catch (error) {
+        // Parsing failed, clear the parsed nutrition
+        setParsedNutrition(null);
+      } finally {
+        setIsParsing(false);
+      }
+    } else {
+      setParsedNutrition(null);
+    }
+  };
+
   const handleLogFood = async () => {
     if (!foodText.trim()) return;
 
     setIsLoading(true);
+    setError('');
+
     try {
-      // Mock nutrition parsing - in production, this would come from an API
-      const nutrition = {
-        calories: Math.floor(Math.random() * 500) + 100,
-        protein: Math.floor(Math.random() * 30),
-        carbs: Math.floor(Math.random() * 50),
-        fat: Math.floor(Math.random() * 20),
-      };
+      // Parse food text to get nutrition
+      let nutrition;
+      try {
+        const parsed = await logsService.parseFoodText(foodText);
+        nutrition = parsed.nutrition;
+      } catch (parseError) {
+        // If parsing fails, show an error
+        throw new Error('Could not parse food description. Try format like "100g chicken" or "2 slices bread"');
+      }
 
       await logsService.createLog({
         userId: user!.id,
@@ -50,14 +76,13 @@ export default function LogPage() {
 
       // Reset form
       setFoodText('');
-      setSuggestions([]);
+      setParsedNutrition(null);
 
       // Show success and redirect to today
-      alert('Food logged successfully!');
       router.push('/today');
     } catch (error) {
       console.error('Failed to log food:', error);
-      alert('Failed to log food. Please try again.');
+      setError(error instanceof Error ? error.message : 'Failed to log food. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -68,6 +93,12 @@ export default function LogPage() {
       <Layout maxWidth="lg">
         <div className="min-h-screen pb-24">
           <Header title="Log Food" />
+
+          {error && (
+            <Alert type="danger" className="mb-4">
+              {error}
+            </Alert>
+          )}
 
           <Card>
             <CardBody>
@@ -106,25 +137,50 @@ export default function LogPage() {
                 </label>
                 <Input
                   type="text"
-                  placeholder="e.g., Grilled chicken breast with rice"
+                  placeholder="e.g., 100g chicken breast or 2 slices bread"
                   value={foodText}
-                  onChange={(e) => setFoodText(e.target.value)}
-                  helperText="Describe your meal in plain text"
+                  onChange={(e) => handleFoodTextChange(e.target.value)}
+                  helperText="Describe your meal with quantity and unit"
                   isFullWidth
                 />
                 <p className="mt-2 text-xs text-neutral-500">
-                  💡 Tip: Include details like &quot;grilled&quot;, &quot;with sauce&quot;, or portion size for better tracking
+                  💡 Tip: Use format like "100g chicken", "2 slices bread", or "1 apple"
                 </p>
               </div>
 
+              {/* Parsed Nutrition Preview */}
+              {parsedNutrition && (
+                <div className="mb-4 p-4 bg-neutral-50 rounded-lg border border-neutral-200">
+                  <h4 className="text-sm font-medium text-neutral-900 mb-3">Estimated Nutrition</h4>
+                  <div className="grid grid-cols-4 gap-3 text-center">
+                    <div>
+                      <div className="text-lg font-bold text-primary-600">{parsedNutrition.calories}</div>
+                      <div className="text-xs text-neutral-600">Calories</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-neutral-900">{parsedNutrition.protein}g</div>
+                      <div className="text-xs text-neutral-600">Protein</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-neutral-900">{parsedNutrition.carbohydrates}g</div>
+                      <div className="text-xs text-neutral-600">Carbs</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-neutral-900">{parsedNutrition.fat}g</div>
+                      <div className="text-xs text-neutral-600">Fat</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <Button
                 onClick={handleLogFood}
-                isLoading={isLoading}
+                isLoading={isLoading || isParsing}
                 isFullWidth
                 size="lg"
                 disabled={!foodText.trim()}
               >
-                Log Food
+                {isParsing ? 'Parsing...' : 'Log Food'}
               </Button>
             </CardBody>
           </Card>
@@ -133,15 +189,15 @@ export default function LogPage() {
           <Card className="mt-6">
             <CardHeader>
               <h3 className="text-lg font-semibold text-neutral-900">
-                Recent Foods
+                Quick Add
               </h3>
             </CardHeader>
             <CardBody>
               <div className="space-y-3">
-                {['Grilled chicken breast', 'Brown rice', 'Green salad', 'Greek yogurt'].map((food, index) => (
+                {['100g chicken breast', '200g brown rice', '1 large apple', '150g greek yogurt'].map((food, index) => (
                   <button
                     key={index}
-                    onClick={() => setFoodText(food)}
+                    onClick={() => handleFoodTextChange(food)}
                     className="w-full rounded-lg border border-neutral-200 p-3 text-left hover:bg-neutral-50 transition-colors"
                   >
                     <div className="flex items-center justify-between">
