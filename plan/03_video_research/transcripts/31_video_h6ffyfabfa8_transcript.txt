@@ -1,0 +1,234 @@
+Transcript:
+Every AI coding tutorial tells you the
+exact same thing. Use Superbase. And I
+believed it, too. I built apps with it.
+I even taught it. But after helping over
+200 non-technical professionals build
+real apps with AI, I've realized that
+this advice is actually holding you
+back. What I use now is called Convex.
+And in this video, I'm going to show you
+the five reasons why I switched and why
+your AI tools will thank you for doing
+the same. And to make things even
+easier, I made a Convex starter guide
+for you that you can download for free
+later in this video. So here is reason
+number one. So as a nontechnical builder
+using AI, you really want things to be
+simple. But with Superbase, you're
+forced to manage two separate brains. On
+one side, you have your code where your
+app lives with login and actual
+features. And on the other, you have the
+Superbase dashboard and database where
+your tables, data, and rules live. So
+your AI coder is constantly switching
+between asking your AI to write code and
+then if you got it set up talking
+directly to Superbase or in the worst
+case waiting for you to manually click
+some buttons in a dashboard to make
+things work. It's like having a TV that
+needs two different remotes. One
+controls the picture and the other
+controls the sound. Sometimes they sync,
+sometimes they don't. And every time you
+want to change something, you juggle
+them both. Convex solves this by giving
+you one single remote, which is your
+app's code. Your database rules, your
+table definitions, and your business
+logic all live right there alongside
+your app. This is where the AI can
+actually see it, understand it, and
+change it instantly without wasting time
+or memory, leading to much better
+results. And now that your AI can
+actually see everything, there's one new
+problem because you are going to break
+things quite a lot, which brings us to
+reason number two. So, as you already
+know, while you're building with AI,
+things break a lot. So, you need
+something that developers call a
+sandbox. In traditional engineering,
+setting up a deaf or a staging
+environment, as it's called, is quite
+complicated. Superbase is no difference
+because it requires you to configure
+this manually and even pay for it extra
+just to have a safe place to test. I
+used to run something called CourseFly,
+an online learning platform on
+Superbase. It had hundreds of paying
+users yet because it was such a pain in
+the ass to actually set up the testing
+environment that I never did. And this
+resulted in me shipping some bugs, more
+than some bugs, or actually not
+implementing changes because I didn't
+have the brain space to plan and extend
+that app so that it wouldn't break after
+I pushed it live without a testing
+environment. And if you don't know, I
+have over 20 years of experience as a
+developer and even for me, the friction
+was too high. I could do it but it was
+too complicated. Not only that but
+Superbase as I said will also charge you
+for the pleasure of having a testing
+environment which is like an additional
+project which you'll understand in a
+moment. Meanwhile, Convex not only gives
+you a separate development and
+production environment completely
+automatically but it does so for free.
+The second you start a new project these
+two environments are just waiting for
+you. So you don't have to configure
+anything and you can break your
+development environment all day long
+without your user ever noticing that you
+did. This is how it should be. So Convex
+gives you a super safe place to fail for
+free. But what happens when you are
+ready to pay? Well, this is where
+Superbase becomes a real problem. And
+trust me, this matters even if you're
+like me and you don't mind paying for
+things that are actually worth it
+because Superbase punishes you for
+having ideas. Their free plan limits you
+to two active projects. And if you want
+to test a third one, a fourth one, or a
+fifth one, you have to delete or at
+least pause one of the old projects,
+making them temporarily inaccessible.
+But the real kick in the nuts happens
+when you do decide to give Superbase
+money because their billing is
+organizationbased. And the moment you
+upgrade an organization, which you can
+think of as a group of projects to the
+pro plan, you lose the rights to have
+any free projects in that organization.
+Think about it like this. If you have
+five hobby projects and you decide to
+upgrade one of them to the pro plan,
+they will all automatically be converted
+into paid instances. Each, here's the
+kicker, to a minimum of $10 a month. So,
+if you have 10 ideas you're playing with
+right now, you could easily be paying
+$100 a month for apps that have
+literally zero users. In my case, and
+I'm going to put like screenshots on on
+the screen here somewhere. I got about
+$80 a month before I knew that I had to
+stop because this is insane. I would
+happily pay hundreds of dollars for a
+production app that makes me money and
+has real users, but I refuse to pay $80
+a month for an empty database just
+because I don't want to delete or pause
+it. Convex has a completely different
+model. They only charge you for your
+actual usage. And even in their free
+plan, they give you 40 projects that
+never freeze. This encourages you to
+just launch new things, experiment, and
+learn instead of wondering how big your
+next bill is going to be because you
+forgot about the three test projects
+that you launched last month. But
+pricing aside, there's a bigger issue
+that most tutorials won't tell you
+about, and it has to do with what
+happens the moment your app needs to
+talk to the outside world. Because
+modern apps need help from external
+services to work. Yours might be
+processing Stripe payments, sending
+emails with resend, or running AI
+requests through something like Versel
+AI gateway. In Superbase, this would
+often require stitching together many
+functions of code that run inside of
+Superbase and even temporary internet
+bridges just to test that the
+notifications from Stripe actually work.
+Trying to test a Stripe payment locally
+while developing your app with Superbase
+usually involves installing some
+terminal tool from Stripe. Setting up a
+bridge so the internet can access your
+local development server. Putting this
+temporary URL into your Stripe. Listen,
+it's a complete nightmare even if you
+are a technical person. But Convex
+treats the backend, which is where all
+your apps logic for external services
+and your database live, as just more
+code that it can read and control. So
+your AI can set up payment notifications
+or schedule things like daily automatic
+tasks directly inside of your code. And
+it works immediately without you setting
+up any internet bridges or mini
+functions of code. Convex can do this
+because even though you build on your
+computer, Convex automatically in the
+background synchronizes your app into
+their cloud. This was pure magic for me
+when it first clicked because it just
+makes it so your back end just works.
+But there's one more thing that
+separates apps that feel armature from
+apps that feel like magic. And most
+Superbase apps get this completely
+wrong. Because let's be honest, users
+today will expect your apps to be fast
+or even better instant. If I change
+something on my phone, I want it to
+update immediately on my MacBook. For
+example, this is called reactivity. And
+in Superbase, making your app update
+live requires a solid amount of extra
+setup, code, and work. If you don't do
+it, your users might be staring at
+outdated data until they hit the refresh
+button. Think about this example. Let's
+say you have a Slack channel with your
+team and your co-founder posts
+something, but on your screen, nothing
+happens. You're still looking at old
+messages. So, you type a response to
+something that they said over an hour
+ago, hit send, and the page refreshes.
+And suddenly, you see that they actually
+answered their own questions three
+messages back. With Superbase, this is
+how your app usually feels to users,
+unless you add extra code. And more code
+means things can break more easily,
+especially if you're non-technical.
+Convex once again is built with
+reactivity in mind. So every change
+updates instantly. There's no refresh
+button, no let me check if something
+changed. It just works out of the box.
+If anything changes inside of your
+database, Convex will send this update
+to your app, which automatically updates
+what everyone sees on their screen. This
+makes your AI app feel super modern,
+super snappy without you doing anything
+extra at all. To get started, download
+my free starter guide in the description
+down below. But choosing Convex is just
+the first step. If you really want to
+see the exact setup for building apps
+that don't break, I created a video that
+walks you through my entire process,
+which you can watch right here.

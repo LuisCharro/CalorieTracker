@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Local runtime artifacts
+.runtime/
+
+# Local onboarding screenshot evidence (keep docs/mapping tracked)
+03_video_research/onboarding_reference/screenshots/*
+!03_video_research/onboarding_reference/screenshots/.gitkeep

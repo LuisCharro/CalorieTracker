@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================
+Base Styles
+============================================================================ */
+
+@layer base {
+  body {
+    @apply bg-neutral-50 text-neutral-900;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+}
+
+/* ============================================================================
+Utility Classes
+============================================================================ */
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .container-screen {
+    @apply container mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* ============================================================================
+Custom Animations
+============================================================================ */
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* ============================================================================
+Focus Styles
+============================================================================ */
+
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+}
+
+/* ============================================================================
+Print Styles
+============================================================================ */
+
+@media print {
+  body {
+    @apply bg-white;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
