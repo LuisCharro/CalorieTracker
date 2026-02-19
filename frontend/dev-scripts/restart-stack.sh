@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-exec /Users/luis/Repos/CalorieTracker_BackEnd/dev-scripts/restart-stack.sh
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+AGGREGATOR_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+exec "${AGGREGATOR_ROOT}/backend/dev-scripts/restart-stack.sh"

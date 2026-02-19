@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BACKEND_DIR="/Users/luis/Repos/CalorieTracker_BackEnd"
-FRONTEND_DIR="/Users/luis/Repos/CalorieTracker_FrontEnd"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BACKEND_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+AGGREGATOR_ROOT="$(cd "${BACKEND_DIR}/.." && pwd)"
+FRONTEND_DIR="${AGGREGATOR_ROOT}/frontend"
 RUNTIME_DIR="${BACKEND_DIR}/.runtime"
 LOG_DIR="${RUNTIME_DIR}/logs"
 PID_DIR="${RUNTIME_DIR}/pids"
