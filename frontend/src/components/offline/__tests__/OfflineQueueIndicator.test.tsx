@@ -12,15 +12,32 @@ jest.mock('@/core/api/services/sync.service', () => ({
   getSyncStatus: jest.fn(),
 }));
 
-jest.mock('@/core/api/services/offline-queue.service', () => ({
-  getOperationCounts: jest.fn(),
-}));
+jest.mock('@/core/api/services/offline-queue.service', () => {
+  const actualModule = jest.requireActual('@/core/api/services/offline-queue.service');
+  return {
+    ...actualModule,
+    getQueue: jest.fn(() => []),
+    getOperationCounts: jest.fn(),
+    discardOperation: jest.fn(),
+    markForRetry: jest.fn(),
+    clearSuccessOperations: jest.fn(),
+    clearQueue: jest.fn(),
+  };
+});
 
 import { getSyncStatus } from '@/core/api/services/sync.service';
-import { getOperationCounts } from '@/core/api/services/offline-queue.service';
+import {
+  getOperationCounts,
+  getQueue,
+  discardOperation,
+  markForRetry,
+  clearSuccessOperations,
+  clearQueue,
+} from '@/core/api/services/offline-queue.service';
 
 const mockGetSyncStatus = getSyncStatus as jest.MockedFunction<typeof getSyncStatus>;
 const mockGetOperationCounts = getOperationCounts as jest.MockedFunction<typeof getOperationCounts>;
+const mockGetQueue = getQueue as jest.MockedFunction<typeof getQueue>;
 
 describe('OfflineQueueIndicator', () => {
   beforeEach(() => {

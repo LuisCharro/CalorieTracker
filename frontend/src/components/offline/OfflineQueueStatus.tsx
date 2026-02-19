@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { getQueue, discardOperation, markForRetry, clearSuccessOperations, clearQueue } from '@/core/api/services/offline-queue.service';
+import { ConflictResolutionDialog, type ConflictData } from './ConflictResolutionDialog';
 import type { OfflineOperation } from '@/core/api/services/offline-queue.service';
 
 interface OfflineQueueStatusProps {
@@ -16,6 +17,7 @@ interface OfflineQueueStatusProps {
 
 export function OfflineQueueStatus({ isOpen, onClose }: OfflineQueueStatusProps) {
   const [operations, setOperations] = useState<OfflineOperation[]>([]);
+  const [conflictToResolve, setConflictToResolve] = useState<ConflictData | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -52,76 +54,118 @@ export function OfflineQueueStatus({ isOpen, onClose }: OfflineQueueStatusProps)
     }
   };
 
+  const handleResolveConflict = (operation: OfflineOperation) => {
+    // For now, we'll create a simple conflict dialog
+    // In a full implementation, you'd need to fetch server data for the conflict
+    const conflict: ConflictData = {
+      operationId: operation.id,
+      operationType: operation.type,
+      clientData: operation.data,
+      serverData: operation.data, // This would be the server's version in a real implementation
+    };
+    setConflictToResolve(conflict);
+  };
+
+  const handleConflictResolution = (choice: 'client' | 'server') => {
+    if (!conflictToResolve) return;
+
+    // In a full implementation, you'd:
+    // 1. Call the API with the chosen version
+    // 2. Mark the operation as resolved (success or re-queued)
+    // 3. Update the queue
+
+    // For MVP, we'll just mark for retry
+    markForRetry(conflictToResolve.operationId);
+    setConflictToResolve(null);
+    loadOperations();
+  };
+
+  const handleDismissConflict = () => {
+    setConflictToResolve(null);
+  };
+
   if (!isOpen) {
     return null;
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
-        <div className="p-6 border-b flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">Offline Queue Status</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
-          >
-            ×
-          </button>
-        </div>
-
-        <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
-          <div className="flex gap-4 text-sm">
-            <span className="text-gray-600">Pending: <strong>{operations.filter(o => o.status === 'pending').length}</strong></span>
-            <span className="text-gray-600">Syncing: <strong>{operations.filter(o => o.status === 'syncing').length}</strong></span>
-            <span className="text-gray-600">Success: <strong>{operations.filter(o => o.status === 'success').length}</strong></span>
-            <span className="text-gray-600">Error: <strong>{operations.filter(o => o.status === 'error').length}</strong></span>
-          </div>
-          <div className="flex gap-2">
+    <>
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] flex flex-col">
+          <div className="p-6 border-b flex justify-between items-center">
+            <h2 className="text-2xl font-bold text-gray-900">Offline Queue Status</h2>
             <button
-              onClick={handleClearSuccess}
-              className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded"
-              disabled={operations.filter(o => o.status === 'success').length === 0}
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
             >
-              Clear Success
-            </button>
-            <button
-              onClick={handleClearAll}
-              className="px-3 py-1 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded"
-            >
-              Clear All
+              ×
             </button>
           </div>
-        </div>
 
-        <div className="flex-1 overflow-auto p-4">
-          {operations.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <p>No queued operations</p>
+          <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
+            <div className="flex gap-4 text-sm">
+              <span className="text-gray-600">Pending: <strong>{operations.filter(o => o.status === 'pending').length}</strong></span>
+              <span className="text-gray-600">Syncing: <strong>{operations.filter(o => o.status === 'syncing').length}</strong></span>
+              <span className="text-gray-600">Success: <strong>{operations.filter(o => o.status === 'success').length}</strong></span>
+              <span className="text-gray-600">Error: <strong>{operations.filter(o => o.status === 'error').length}</strong></span>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {operations.map((operation) => (
-                <OperationCard
-                  key={operation.id}
-                  operation={operation}
-                  onRetry={() => handleRetry(operation.id)}
-                  onDiscard={() => handleDiscard(operation.id)}
-                />
-              ))}
+            <div className="flex gap-2">
+              <button
+                onClick={handleClearSuccess}
+                className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 rounded"
+                disabled={operations.filter(o => o.status === 'success').length === 0}
+              >
+                Clear Success
+              </button>
+              <button
+                onClick={handleClearAll}
+                className="px-3 py-1 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded"
+              >
+                Clear All
+              </button>
             </div>
-          )}
-        </div>
+          </div>
 
-        <div className="p-4 border-t flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Close
-          </button>
+          <div className="flex-1 overflow-auto p-4">
+            {operations.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <p>No queued operations</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {operations.map((operation) => (
+                  <OperationCard
+                    key={operation.id}
+                    operation={operation}
+                    onRetry={() => handleRetry(operation.id)}
+                    onDiscard={() => handleDiscard(operation.id)}
+                    onResolveConflict={() => handleResolveConflict(operation)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 border-t flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      {conflictToResolve && (
+        <ConflictResolutionDialog
+          isOpen={!!conflictToResolve}
+          conflict={conflictToResolve}
+          onResolve={handleConflictResolution}
+          onDismiss={handleDismissConflict}
+        />
+      )}
+    </>
   );
 }
 
@@ -129,9 +173,10 @@ interface OperationCardProps {
   operation: OfflineOperation;
   onRetry: () => void;
   onDiscard: () => void;
+  onResolveConflict: () => void;
 }
 
-function OperationCard({ operation, onRetry, onDiscard }: OperationCardProps) {
+function OperationCard({ operation, onRetry, onDiscard, onResolveConflict }: OperationCardProps) {
   const getStatusIcon = () => {
     switch (operation.status) {
       case 'pending':
@@ -156,6 +201,7 @@ function OperationCard({ operation, onRetry, onDiscard }: OperationCardProps) {
     }
   };
 
+  const isConflict = operation.status === 'error' && operation.error?.toLowerCase().includes('conflict');
   const canRetry = operation.status === 'error' && operation.retryCount < 3;
 
   return (
@@ -164,6 +210,11 @@ function OperationCard({ operation, onRetry, onDiscard }: OperationCardProps) {
         <div className="flex items-center gap-2">
           {getStatusIcon()}
           <span className="font-semibold">{getOperationTypeLabel()}</span>
+          {isConflict && (
+            <span className="bg-orange-100 text-orange-800 px-2 py-0.5 rounded text-xs">
+              Conflict
+            </span>
+          )}
         </div>
         <span className="text-xs text-gray-500">
           {new Date(operation.timestamp).toLocaleString()}
@@ -184,6 +235,14 @@ function OperationCard({ operation, onRetry, onDiscard }: OperationCardProps) {
 
       {operation.status !== 'success' && (
         <div className="flex gap-2 mt-2">
+          {isConflict && (
+            <button
+              onClick={onResolveConflict}
+              className="px-3 py-1 text-sm bg-orange-100 hover:bg-orange-200 text-orange-700 rounded"
+            >
+              Resolve
+            </button>
+          )}
           {canRetry && (
             <button
               onClick={onRetry}
@@ -203,3 +262,4 @@ function OperationCard({ operation, onRetry, onDiscard }: OperationCardProps) {
     </div>
   );
 }
+
