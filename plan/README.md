@@ -91,6 +91,7 @@ Architecture, compliance, and execution-level planning docs (including Codex cri
 - `74_EXECUTION_LOG_cycle-24-full_2026-02-19.md`
 - `75_EXECUTION_LOG_cycle-25-full_2026-02-19.md`
 - `76_EXECUTION_LOG_cycle-26-full_2026-02-19.md`
+- `80_EXECUTION_LOG_cycle-30-validation_2026-02-19.md`
 
 ### Historical iterations (archived)
 - `02_architecture_gdpr/archive/` contains working-history documents `15–24`.
