@@ -4,7 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { ValidationError, NotFoundError, ConflictError, IdempotencyConflictError } from '../validation/schemas.js';
+import { ValidationError, NotFoundError, ConflictError, UnauthorizedError, IdempotencyConflictError } from '../validation/schemas.js';
 
 /**
  * Convert unknown errors to consistent API error format
@@ -38,6 +38,12 @@ export function errorHandler(
   // Handle conflict errors
   if (err instanceof ConflictError) {
     res.status(409).json(err.toJSON());
+    return;
+  }
+
+  // Handle unauthorized errors
+  if (err instanceof UnauthorizedError) {
+    res.status(401).json(err.toJSON());
     return;
   }
 

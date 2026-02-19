@@ -17,6 +17,7 @@ describe('Auth Endpoints Integration Tests', () => {
       .post('/api/auth/register')
       .send({
         email: testEmail,
+        password: 'TestPassword123!',
         displayName: 'Test User',
         preferences: { timezone: 'Europe/Zurich' },
       })
@@ -28,6 +29,7 @@ describe('Auth Endpoints Integration Tests', () => {
     expect(response.body.data).toHaveProperty('email', testEmail);
     expect(response.body.data).toHaveProperty('displayName', 'Test User');
     expect(response.body.data).toHaveProperty('onboardingComplete', false);
+    expect(response.body.data).toHaveProperty('token');
 
     userId = response.body.data.id;
   });
@@ -37,6 +39,7 @@ describe('Auth Endpoints Integration Tests', () => {
       .post('/api/auth/register')
       .send({
         email: testEmail,
+        password: 'TestPassword123!',
         displayName: 'Another User',
       })
       .expect(409)
@@ -64,6 +67,7 @@ describe('Auth Endpoints Integration Tests', () => {
       .post('/api/auth/login')
       .send({
         email: testEmail,
+        password: 'TestPassword123!',
       })
       .expect(200)
       .expect('Content-Type', /json/);
@@ -71,19 +75,21 @@ describe('Auth Endpoints Integration Tests', () => {
     expect(response.body).toHaveProperty('success', true);
     expect(response.body.data).toHaveProperty('id', userId);
     expect(response.body.data).toHaveProperty('email', testEmail);
+    expect(response.body.data).toHaveProperty('token');
   });
 
-  it('should return 404 for non-existent user login', async () => {
+  it('should return 401 for non-existent user login', async () => {
     const response = await request(app)
       .post('/api/auth/login')
       .send({
         email: 'nonexistent@example.com',
+        password: 'SomePassword123!',
       })
-      .expect(404)
+      .expect(401)
       .expect('Content-Type', /json/);
 
     expect(response.body).toHaveProperty('success', false);
-    expect(response.body.error).toHaveProperty('code', 'not_found');
+    expect(response.body.error).toHaveProperty('code', 'unauthorized');
   });
 
   it('should get user by ID', async () => {

@@ -287,14 +287,22 @@ router.post('/erase/:userId', async (req, res) => {
     [requestId, userId, 'erasure', 'pending', new Date(), '{}']
   );
 
+  // Soft delete the user immediately
+  await query(
+    `UPDATE users
+     SET is_deleted = TRUE, deleted_at = NOW()
+     WHERE id = $1`,
+    [userId]
+  );
+
   res.status(202).json({
     success: true,
     data: {
       requestId,
       userId,
       requestType: 'erasure',
-      status: 'pending',
-      message: 'Erasure request submitted. Processing will begin shortly.',
+      status: 'completed',
+      message: 'Erasure request submitted and account has been soft deleted.',
     },
     meta: {
       timestamp: new Date().toISOString(),

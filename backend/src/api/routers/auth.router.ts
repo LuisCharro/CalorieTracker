@@ -6,14 +6,28 @@
 import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { query } from '../../db/pool.js';
 import { validateBody, validateParams, NotFoundError, ConflictError, UnauthorizedError } from '../validation/schemas.js';
 import { createUserSchema, updateUserSchema, userIdSchema, loginSchema } from '../validation/schemas.js';
 
 const BCRYPT_ROUNDS = 12;
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-production';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 
 const router = Router();
+
+/**
+ * Generate JWT token for a user
+ */
+function generateToken(userId: string): string {
+  return jwt.sign(
+    { userId },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN as '7d' }
+  );
+}
 
 async function logSecurityEvent(params: {
   eventType: 'signup_success' | 'login_success' | 'login_failure';
@@ -66,6 +80,7 @@ router.post('/register', async (req, res) => {
     );
 
     const user = result.rows[0];
+    const token = generateToken(user.id);
 
     await logSecurityEvent({
       eventType: 'signup_success',
@@ -83,6 +98,7 @@ router.post('/register', async (req, res) => {
         preferences: user.preferences,
         onboardingComplete: user.onboarding_complete,
         createdAt: user.created_at,
+        token,
       },
       meta: {
         timestamp: new Date().toISOString(),
@@ -151,6 +167,8 @@ router.post('/login', async (req, res) => {
     [user.id]
   );
 
+  const token = generateToken(user.id);
+
   await logSecurityEvent({
     eventType: 'login_success',
     severity: 'info',
@@ -167,6 +185,7 @@ router.post('/login', async (req, res) => {
       preferences: user.preferences,
       onboardingComplete: user.onboarding_complete,
       createdAt: user.created_at,
+      token,
     },
     meta: {
       timestamp: new Date().toISOString(),
