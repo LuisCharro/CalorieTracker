@@ -11,6 +11,7 @@ export interface OfflineOperation {
   status: 'pending' | 'syncing' | 'success' | 'error';
   error?: string;
   retryCount: number;
+  serverData?: Record<string, unknown>;
 }
 
 const OFFLINE_QUEUE_KEY = 'calorietracker_offline_queue';
@@ -83,7 +84,12 @@ export function addToQueue(operation: Omit<OfflineOperation, 'id' | 'status' | '
 /**
  * Update operation status
  */
-export function updateOperationStatus(operationId: string, status: OfflineOperation['status'], error?: string): void {
+export function updateOperationStatus(
+  operationId: string,
+  status: OfflineOperation['status'],
+  error?: string,
+  serverData?: Record<string, unknown>
+): void {
   const queue = getQueue();
   const index = queue.findIndex(op => op.id === operationId);
 
@@ -92,6 +98,14 @@ export function updateOperationStatus(operationId: string, status: OfflineOperat
 
     if (error) {
       queue[index].error = error;
+    } else {
+      delete queue[index].error;
+    }
+
+    if (serverData) {
+      queue[index].serverData = serverData;
+    } else if (status === 'success' || status === 'pending') {
+      delete queue[index].serverData;
     }
 
     if (status === 'error') {

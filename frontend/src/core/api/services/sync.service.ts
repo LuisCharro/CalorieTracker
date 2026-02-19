@@ -3,8 +3,9 @@
  * Syncs offline operations with the backend
  */
 
-import { getQueue, updateOperationStatus, removeFromQueue, getOperationCounts } from './offline-queue.service';
+import { getQueue, updateOperationStatus, removeFromQueue, getOperationCounts, type OfflineOperation } from './offline-queue.service';
 export { getQueue, updateOperationStatus, removeFromQueue, getOperationCounts };
+export type { OfflineOperation };
 
 export interface SyncResult {
   operationId: string;
@@ -48,7 +49,12 @@ export async function syncOfflineQueue(userId: string): Promise<SyncResponse> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        operations: pendingOperations,
+        operations: pendingOperations.map(operation => ({
+          operationId: operation.id,
+          type: operation.type,
+          data: operation.data,
+          timestamp: operation.timestamp,
+        })),
         userId,
       }),
     });
@@ -62,16 +68,22 @@ export async function syncOfflineQueue(userId: string): Promise<SyncResponse> {
 
     // Process results
     for (const result of syncResponse.results) {
-      const operation = pendingOperations.find(op =>
-        op.type === result.type &&
-        (result.data ? compareOperationData(op.data, result.data) : true)
-      );
+      const operation = pendingOperations.find(op => op.id === result.operationId)
+        ?? pendingOperations.find(op =>
+          op.type === result.type &&
+          (result.data ? compareOperationData(op.data, result.data) : true)
+        );
 
       if (operation) {
         if (result.status === 'success') {
           updateOperationStatus(operation.id, 'success');
         } else if (result.status === 'conflict') {
-          updateOperationStatus(operation.id, 'error', result.error || 'Conflict detected');
+          updateOperationStatus(
+            operation.id,
+            'error',
+            result.error || 'Conflict detected',
+            result.serverData
+          );
         } else {
           updateOperationStatus(operation.id, 'error', result.error || 'Sync failed');
         }

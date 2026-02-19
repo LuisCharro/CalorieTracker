@@ -61,7 +61,7 @@ export function OfflineQueueStatus({ isOpen, onClose }: OfflineQueueStatusProps)
       operationId: operation.id,
       operationType: operation.type,
       clientData: operation.data,
-      serverData: operation.data, // This would be the server's version in a real implementation
+      serverData: operation.serverData ?? operation.data,
     };
     setConflictToResolve(conflict);
   };
@@ -69,13 +69,14 @@ export function OfflineQueueStatus({ isOpen, onClose }: OfflineQueueStatusProps)
   const handleConflictResolution = (choice: 'client' | 'server') => {
     if (!conflictToResolve) return;
 
-    // In a full implementation, you'd:
-    // 1. Call the API with the chosen version
-    // 2. Mark the operation as resolved (success or re-queued)
-    // 3. Update the queue
+    if (choice === 'server') {
+      // Accept server state and drop the local conflicting write.
+      discardOperation(conflictToResolve.operationId);
+    } else {
+      // Keep local intent and retry on the next sync attempt.
+      markForRetry(conflictToResolve.operationId);
+    }
 
-    // For MVP, we'll just mark for retry
-    markForRetry(conflictToResolve.operationId);
     setConflictToResolve(null);
     loadOperations();
   };

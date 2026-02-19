@@ -11,6 +11,7 @@ import { validateBody, validateParams, NotFoundError, userIdSchema } from '../va
 const router = Router();
 
 interface OfflineOperation {
+  operationId?: string;
   type: 'create_log' | 'update_log' | 'delete_log';
   data: Record<string, unknown>;
   timestamp: string;
@@ -70,6 +71,7 @@ router.post('/offline-queue', async (req, res) => {
   });
 
   const results: Array<{
+    operationId?: string;
     type: string;
     data: Record<string, unknown>;
     status: 'success' | 'conflict' | 'error';
@@ -86,6 +88,7 @@ router.post('/offline-queue', async (req, res) => {
           // Validate required fields
           if (!food_name || !quantity || !unit || !meal_type || !nutrition) {
             results.push({
+              operationId: operation.operationId,
               type: operation.type,
               data: operation.data,
               status: 'error',
@@ -105,6 +108,7 @@ router.post('/offline-queue', async (req, res) => {
           );
 
           results.push({
+            operationId: operation.operationId,
             type: operation.type,
             data: operation.data,
             status: 'success',
@@ -118,6 +122,7 @@ router.post('/offline-queue', async (req, res) => {
 
           if (!id) {
             results.push({
+              operationId: operation.operationId,
               type: operation.type,
               data: operation.data,
               status: 'error',
@@ -134,6 +139,7 @@ router.post('/offline-queue', async (req, res) => {
 
           if (existing.rows.length === 0) {
             results.push({
+              operationId: operation.operationId,
               type: operation.type,
               data: operation.data,
               status: 'conflict',
@@ -148,6 +154,7 @@ router.post('/offline-queue', async (req, res) => {
 
           if (serverUpdatedAt > clientTimestamp) {
             results.push({
+              operationId: operation.operationId,
               type: operation.type,
               data: operation.data,
               status: 'conflict',
@@ -203,6 +210,7 @@ router.post('/offline-queue', async (req, res) => {
           );
 
           results.push({
+            operationId: operation.operationId,
             type: operation.type,
             data: operation.data,
             status: 'success',
@@ -216,6 +224,7 @@ router.post('/offline-queue', async (req, res) => {
 
           if (!id) {
             results.push({
+              operationId: operation.operationId,
               type: operation.type,
               data: operation.data,
               status: 'error',
@@ -232,6 +241,7 @@ router.post('/offline-queue', async (req, res) => {
 
           if (existing.rows.length === 0) {
             results.push({
+              operationId: operation.operationId,
               type: operation.type,
               data: operation.data,
               status: 'conflict',
@@ -249,6 +259,7 @@ router.post('/offline-queue', async (req, res) => {
           );
 
           results.push({
+            operationId: operation.operationId,
             type: operation.type,
             data: operation.data,
             status: 'success',
@@ -258,6 +269,7 @@ router.post('/offline-queue', async (req, res) => {
 
         default:
           results.push({
+            operationId: operation.operationId,
             type: operation.type,
             data: operation.data,
             status: 'error',
@@ -267,6 +279,7 @@ router.post('/offline-queue', async (req, res) => {
     } catch (error) {
       console.error(`[Sync] Error processing operation:`, error);
       results.push({
+        operationId: operation.operationId,
         type: operation.type,
         data: operation.data,
         status: 'error',
