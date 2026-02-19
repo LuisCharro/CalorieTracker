@@ -22,10 +22,20 @@ export const positiveNumberSchema = z.number().positive('Value must be positive'
 // User Schemas
 // ============================================================================
 
+export const passwordSchema = z.string()
+  .min(8, 'Password must be at least 8 characters')
+  .max(128, 'Password must be at most 128 characters');
+
 export const createUserSchema = z.object({
   email: emailSchema,
+  password: passwordSchema,
   displayName: z.string().min(1).max(255).optional(),
   preferences: z.record(z.unknown()).default({}),
+});
+
+export const loginSchema = z.object({
+  email: emailSchema,
+  password: z.string().min(1, 'Password is required'),
 });
 
 export const updateUserSchema = z.object({
@@ -307,6 +317,23 @@ export class ConflictError extends Error {
       success: false,
       error: {
         code: 'conflict',
+        message: this.message,
+      },
+    };
+  }
+}
+
+export class UnauthorizedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UnauthorizedError';
+  }
+
+  toJSON() {
+    return {
+      success: false,
+      error: {
+        code: 'unauthorized',
         message: this.message,
       },
     };

@@ -5,11 +5,41 @@
 
 import { Router } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import { query } from '../../db/pool.js';
-import { validateBody, validateParams, NotFoundError, ConflictError } from '../validation/schemas.js';
-import { createUserSchema, updateUserSchema, userIdSchema } from '../validation/schemas.js';
+import { validateBody, validateParams, NotFoundError, ConflictError, UnauthorizedError } from '../validation/schemas.js';
+import { createUserSchema, updateUserSchema, userIdSchema, loginSchema } from '../validation/schemas.js';
+
+const BCRYPT_ROUNDS = 12;
 
 const router = Router();
+
+async function logSecurityEvent(params: {
+  eventType: 'signup_success' | 'login_success' | 'login_failure';
+  severity: 'info' | 'warning';
+  userId?: string;
+  req: any;
+  details?: Record<string, unknown>;
+}): Promise<void> {
+  const ip = params.req.ip || params.req.headers['x-forwarded-for'] || 'unknown';
+  const ipHash = crypto.createHash('sha256').update(ip.toString()).digest('hex').substring(0, 32);
+  const userAgent = params.req.headers['user-agent'] || null;
+
+  await query(
+    `INSERT INTO security_events (id, event_type, severity, user_id, ip_hash, user_agent, details)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [
+      uuidv4(),
+      params.eventType,
+      params.severity,
+      params.userId || null,
+      ipHash,
+      userAgent,
+      JSON.stringify(params.details || {}),
+    ]
+  );
+}
 
 /**
  * POST /api/auth/register
@@ -20,13 +50,15 @@ router.post('/register', async (req, res) => {
 
   try {
     const userId = uuidv4();
+    const passwordHash = await bcrypt.hash(data.password, BCRYPT_ROUNDS);
     const result = await query(
-      `INSERT INTO users (id, email, display_name, preferences, onboarding_complete)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO users (id, email, password_hash, display_name, preferences, onboarding_complete)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id, email, display_name, preferences, onboarding_complete, created_at`,
       [
         userId,
         data.email,
+        passwordHash,
         data.displayName || null,
         JSON.stringify(data.preferences),
         false,
@@ -34,6 +66,13 @@ router.post('/register', async (req, res) => {
     );
 
     const user = result.rows[0];
+
+    await logSecurityEvent({
+      eventType: 'signup_success',
+      severity: 'info',
+      userId: user.id,
+      req,
+    });
 
     res.status(201).json({
       success: true,
@@ -51,7 +90,6 @@ router.post('/register', async (req, res) => {
     });
   } catch (error) {
     if ((error as any).code === '23505') {
-      // Unique constraint violation
       throw new ConflictError('User with this email already exists');
     }
     throw error;
@@ -60,39 +98,65 @@ router.post('/register', async (req, res) => {
 
 /**
  * POST /api/auth/login
- * Login a user (MVP: simple email lookup, no password yet)
+ * Login a user with email and password
  */
 router.post('/login', async (req, res) => {
-  const { email } = req.body;
-
-  if (!email) {
-    return res.status(400).json({
-      success: false,
-      error: {
-        code: 'validation_error',
-        message: 'Email is required',
-      },
-    });
-  }
+  const data = validateBody(loginSchema, req.body);
 
   const result = await query(
-    `SELECT id, email, display_name, preferences, onboarding_complete, created_at
+    `SELECT id, email, password_hash, display_name, preferences, onboarding_complete, created_at
      FROM users
      WHERE email = $1 AND is_deleted = FALSE`,
-    [email]
+    [data.email]
   );
 
   if (result.rows.length === 0) {
-    throw new NotFoundError('User', email);
+    await logSecurityEvent({
+      eventType: 'login_failure',
+      severity: 'warning',
+      req,
+      details: { reason: 'user_not_found', email: data.email },
+    });
+    throw new UnauthorizedError('Invalid email or password');
   }
 
   const user = result.rows[0];
 
-  // Update last login
+  if (!user.password_hash) {
+    await logSecurityEvent({
+      eventType: 'login_failure',
+      severity: 'warning',
+      userId: user.id,
+      req,
+      details: { reason: 'no_password_set' },
+    });
+    throw new UnauthorizedError('Invalid email or password');
+  }
+
+  const passwordValid = await bcrypt.compare(data.password, user.password_hash);
+
+  if (!passwordValid) {
+    await logSecurityEvent({
+      eventType: 'login_failure',
+      severity: 'warning',
+      userId: user.id,
+      req,
+      details: { reason: 'invalid_password' },
+    });
+    throw new UnauthorizedError('Invalid email or password');
+  }
+
   await query(
     `UPDATE users SET last_login_at = NOW() WHERE id = $1`,
     [user.id]
   );
+
+  await logSecurityEvent({
+    eventType: 'login_success',
+    severity: 'info',
+    userId: user.id,
+    req,
+  });
 
   res.json({
     success: true,
