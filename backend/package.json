@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon --watch src --ext ts,js,json --exec node --loader ts-node/esm src/api/server.ts",
-    "start": "node src/api/server.ts",
+    "start": "node dist/api/server.js",
     "migrate": "node scripts/migrate.js",
     "migrate:status": "node scripts/migrate.js status",
     "migrate:dry-run": "node scripts/migrate.js dry-run",
