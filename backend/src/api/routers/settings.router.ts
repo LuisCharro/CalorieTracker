@@ -157,9 +157,9 @@ router.patch('/:userId/preferences', async (req, res) => {
 
   const result = await query(
     `UPDATE users
-     SET preferences = preferences || $2, updated_at = NOW()
+     SET preferences = preferences || $2
      WHERE id = $1 AND is_deleted = FALSE
-     RETURNING id, preferences, updated_at`,
+     RETURNING id, preferences`,
     [userId, JSON.stringify(preferences)]
   );
 
@@ -171,7 +171,6 @@ router.patch('/:userId/preferences', async (req, res) => {
     success: true,
     data: {
       preferences: result.rows[0].preferences,
-      updatedAt: result.rows[0].updated_at,
     },
     meta: {
       timestamp: new Date().toISOString(),
@@ -232,6 +231,45 @@ router.get('/consent/current/:userId', async (req, res) => {
   res.json({
     success: true,
     data: currentConsent,
+    meta: {
+      timestamp: new Date().toISOString(),
+    },
+  });
+});
+
+/**
+ * PUT /api/settings/:userId/onboarding
+ * Complete onboarding for a user
+ * This marks the user as having completed onboarding and allows access to the main app
+ */
+router.put('/:userId/onboarding', async (req, res) => {
+  const { userId } = validateParams(userIdSchema, req.params);
+
+  const result = await query(
+    `UPDATE users
+     SET onboarding_complete = TRUE,
+         onboarding_completed_at = NOW()
+     WHERE id = $1 AND is_deleted = FALSE
+     RETURNING id, email, display_name, onboarding_complete, onboarding_completed_at, created_at`,
+    [userId]
+  );
+
+  if (result.rows.length === 0) {
+    throw new NotFoundError('User', userId);
+  }
+
+  const user = result.rows[0];
+
+  res.json({
+    success: true,
+    data: {
+      id: user.id,
+      email: user.email,
+      displayName: user.display_name,
+      onboardingComplete: user.onboarding_complete,
+      onboardingCompletedAt: user.onboarding_completed_at,
+      createdAt: user.created_at,
+    },
     meta: {
       timestamp: new Date().toISOString(),
     },
