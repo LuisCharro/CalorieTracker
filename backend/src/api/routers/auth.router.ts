@@ -133,7 +133,7 @@ router.post('/login', async (req, res) => {
       req,
       details: { reason: 'user_not_found', email: data.email },
     });
-    throw new UnauthorizedError('Invalid email or password');
+    throw new NotFoundError('User', data.email);
   }
 
   const user = result.rows[0];

@@ -78,18 +78,18 @@ describe('Auth Endpoints Integration Tests', () => {
     expect(response.body.data).toHaveProperty('token');
   });
 
-  it('should return 401 for non-existent user login', async () => {
+  it('should return 404 for non-existent user login', async () => {
     const response = await request(app)
       .post('/api/auth/login')
       .send({
         email: 'nonexistent@example.com',
         password: 'SomePassword123!',
       })
-      .expect(401)
+      .expect(404)
       .expect('Content-Type', /json/);
 
     expect(response.body).toHaveProperty('success', false);
-    expect(response.body.error).toHaveProperty('code', 'unauthorized');
+    expect(response.body.error).toHaveProperty('code', 'not_found');
   });
 
   it('should get user by ID', async () => {
