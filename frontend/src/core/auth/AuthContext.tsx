@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { tokenManager } from '../api/client';
-import { User } from '../contracts/types';
+import { CreateUserRequest, User } from '../contracts/types';
 import { authService } from '../api/services/auth.service';
 
 // ============================================================================
@@ -67,7 +67,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.login({ email, password });
       if (response.success) {
-        tokenManager.setTokens('mock-token', response.data.id);
         setUser(response.data);
       } else {
         throw new Error('Login failed');
@@ -82,7 +81,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.signup(data);
       if (response.success) {
-        tokenManager.setTokens('mock-token', response.data.id);
         setUser(response.data);
       } else {
         throw new Error(response.error?.message || 'Signup failed');

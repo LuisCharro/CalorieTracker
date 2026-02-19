@@ -31,8 +31,11 @@ export class AuthService {
       throw new Error('Auth operation failed');
     }
 
-    // Store tokens (MVP: userId from response, no actual token yet)
-    tokenManager.setTokens('mock-token', response.data.id);
+    const token = response.data.token;
+    if (!token) {
+      throw new Error('Auth response missing token');
+    }
+    tokenManager.setTokens(token, response.data.id);
 
     return response.data;
   }
@@ -45,6 +48,15 @@ export class AuthService {
       `${this.basePath}/register`,
       data
     );
+
+    if (response.success) {
+      const token = response.data.token;
+      if (!token) {
+        throw new Error('Auth response missing token');
+      }
+      tokenManager.setTokens(token, response.data.id);
+    }
+
     return response;
   }
 
@@ -58,8 +70,11 @@ export class AuthService {
     );
 
     if (response.success) {
-      // Store tokens (MVP: userId from response, no actual token yet)
-      tokenManager.setTokens('mock-token', response.data.id);
+      const token = response.data.token;
+      if (!token) {
+        throw new Error('Auth response missing token');
+      }
+      tokenManager.setTokens(token, response.data.id);
     }
 
     return response;

@@ -18,6 +18,7 @@ export interface User {
   onboardingCompletedAt?: string;
   createdAt: string;
   lastLoginAt?: string;
+  token?: string;
 }
 
 export interface CreateUserRequest {
