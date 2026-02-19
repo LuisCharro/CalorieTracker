@@ -15,6 +15,8 @@ import logsRouter from './routers/logs.router.js';
 import goalsRouter from './routers/goals.router.js';
 import gdprRouter from './routers/gdpr.router.js';
 import settingsRouter from './routers/settings.router.js';
+import syncRouter from './routers/sync.router.js';
+import { startJobScheduler, stopJobScheduler } from './jobs/scheduler.js';
 
 // Load environment variables
 dotenv.config();
@@ -48,6 +50,7 @@ app.use('/api/logs', idempotencyMiddleware, logsRouter);
 app.use('/api/goals', idempotencyMiddleware, goalsRouter);
 app.use('/api/gdpr', gdprRouter);
 app.use('/api/settings', idempotencyMiddleware, settingsRouter);
+app.use('/api/sync', syncRouter);
 
 // 404 handler (must be after all routes)
 app.use(notFoundHandler);
@@ -63,6 +66,9 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`CalorieTracker backend listening on port ${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`Health check: http://localhost:${PORT}/health`);
+
+    // Start background job scheduler
+    startJobScheduler();
   });
 
   // Graceful shutdown
@@ -71,6 +77,7 @@ if (process.env.NODE_ENV !== 'test') {
     server.close(() => {
       console.log('HTTP server closed');
     });
+    stopJobScheduler();
     await closePool();
     console.log('Database pool closed');
     process.exit(0);

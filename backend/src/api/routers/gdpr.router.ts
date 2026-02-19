@@ -253,6 +253,7 @@ router.get('/export/:userId', async (req, res) => {
 /**
  * POST /api/gdpr/erase/:userId
  * Request data erasure (GDPR right to be forgotten)
+ * This creates an erasure request that will be processed by a background job after the grace period
  */
 router.post('/erase/:userId', async (req, res) => {
   const { userId } = req.params;
@@ -267,7 +268,7 @@ router.post('/erase/:userId', async (req, res) => {
     });
   }
 
-  // Check if user exists
+  // Check if user exists and is not already soft deleted
   const userResult = await query(
     `SELECT id FROM users WHERE id = $1 AND is_deleted = FALSE`,
     [userId]
@@ -277,17 +278,40 @@ router.post('/erase/:userId', async (req, res) => {
     throw new NotFoundError('User', userId);
   }
 
-  // Create erasure request
+  // Check for existing pending erasure request
+  const existingRequest = await query(
+    `SELECT id, status FROM gdpr_requests
+     WHERE user_id = $1 AND request_type = 'erasure' AND status IN ('pending', 'processing')
+     LIMIT 1`,
+    [userId]
+  );
+
+  if (existingRequest.rows.length > 0) {
+    return res.status(409).json({
+      success: false,
+      error: {
+        code: 'conflict',
+        message: 'An erasure request is already pending for this user',
+        data: {
+          requestId: existingRequest.rows[0].id,
+          status: existingRequest.rows[0].status,
+        },
+      },
+    });
+  }
+
+  // Create erasure request (status: pending)
   const requestId = uuidv4();
+  const gracePeriodDays = parseInt(process.env.GDPR_ERASURE_GRACE_PERIOD_DAYS || '30', 10);
 
   await query(
     `INSERT INTO gdpr_requests (id, user_id, request_type, status, requested_at, metadata)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING id`,
-    [requestId, userId, 'erasure', 'pending', new Date(), '{}']
+    [requestId, userId, 'erasure', 'pending', new Date(), JSON.stringify({ gracePeriodDays })]
   );
 
-  // Soft delete the user immediately
+  // Soft delete the user immediately (blocks login, but data is preserved until grace period ends)
   await query(
     `UPDATE users
      SET is_deleted = TRUE, deleted_at = NOW()
@@ -301,8 +325,9 @@ router.post('/erase/:userId', async (req, res) => {
       requestId,
       userId,
       requestType: 'erasure',
-      status: 'completed',
-      message: 'Erasure request submitted and account has been soft deleted.',
+      status: 'pending',
+      message: `Erasure request submitted. Account will be permanently deleted after ${gracePeriodDays} day grace period.`,
+      gracePeriodDays,
     },
     meta: {
       timestamp: new Date().toISOString(),
