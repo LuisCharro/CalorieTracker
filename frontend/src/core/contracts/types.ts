@@ -92,6 +92,38 @@ export interface TodayLogsResponse {
   snack: FoodLog[];
 }
 
+export interface BatchFoodLogItem {
+  foodName: string;
+  brandName?: string;
+  quantity: number;
+  unit: string;
+  nutrition: Nutrition;
+}
+
+export interface BatchCreateFoodLogRequest {
+  userId: string;
+  mealName?: string;
+  mealType: MealType;
+  items: BatchFoodLogItem[];
+  loggedAt?: string;
+}
+
+export interface BatchCreateFoodLogResponse {
+  mealName: string;
+  mealType: MealType;
+  items: Array<{
+    id: string;
+    foodName: string;
+    success: boolean;
+    error?: string;
+  }>;
+  summary: {
+    total: number;
+    created: number;
+    errors: number;
+  };
+}
+
 // ============================================================================
 // Goal Types
 // ============================================================================

@@ -9,9 +9,12 @@ import { logsService, goalsService } from '../../core/api/services';
 import { RouteGuard } from '../../core/auth/routeGuard';
 import type { FoodLog, Goal } from '../../core/contracts/types';
 import { MealType, GoalType } from '../../core/contracts/enums';
+import { useOfflineQueue } from '../../core/contexts/OfflineQueueContext';
+import { OfflineQueueIndicator } from '../../components/offline/OfflineQueueIndicator';
 
 export default function TodayPage() {
   const { user } = useAuth();
+  const { isOnline, isSyncing, counts, sync } = useOfflineQueue();
   const [todayLogs, setTodayLogs] = useState<Record<MealType, FoodLog[]>>({
     breakfast: [],
     lunch: [],
@@ -91,6 +94,22 @@ export default function TodayPage() {
             subtitle={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           />
 
+          {/* Offline & Sync Status */}
+          <div className="mb-4">
+            <OfflineQueueIndicator />
+            {!isOnline && (
+              <Alert type="warning" className="mt-2">
+                📴 You're offline. Changes will sync when back online.
+              </Alert>
+            )}
+            {isSyncing && (
+              <div className="flex items-center gap-2 text-sm text-primary-600 mt-2">
+                <div className="animate-spin h-4 w-4 border-2 border-primary-300 border-t-primary-600 rounded-full" />
+                Syncing offline changes...
+              </div>
+            )}
+          </div>
+
           {error && (
             <Alert type="danger" className="mb-6">
               {error}
@@ -152,6 +171,7 @@ export default function TodayPage() {
           {(Object.keys(mealIcons) as MealType[]).map((mealType) => {
             const logs = todayLogs[mealType];
             const mealCalories = logs.reduce((sum, log) => sum + log.nutrition.calories, 0);
+            const itemCount = logs.length;
 
             return (
               <Card key={mealType} className="mb-4">
@@ -159,13 +179,22 @@ export default function TodayPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">{mealIcons[mealType]}</span>
-                      <h3 className="text-lg font-semibold text-neutral-900 capitalize">
-                        {mealType}
-                      </h3>
+                      <div>
+                        <h3 className="text-lg font-semibold text-neutral-900 capitalize">
+                          {mealType}
+                        </h3>
+                        {itemCount > 0 && (
+                          <p className="text-xs text-neutral-500">
+                            {itemCount} item{itemCount !== 1 ? 's' : ''}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-sm text-neutral-600">
-                      {mealCalories} cal
-                    </span>
+                    <div className="text-right">
+                      <span className="text-sm font-semibold text-neutral-900">
+                        {mealCalories} cal
+                      </span>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardBody>
@@ -181,30 +210,46 @@ export default function TodayPage() {
                       </Link>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      {logs.map((log) => (
+                    <div className="space-y-2">
+                      {logs.map((log, index) => (
                         <div
                           key={log.id}
-                          className="flex items-center justify-between py-2 border-b border-neutral-100 last:border-0"
+                          className="flex items-center justify-between py-3 px-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors"
                         >
-                          <div className="flex-1">
-                            <div className="text-sm font-medium text-neutral-900">
-                              {log.foodName}
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center text-xs font-semibold">
+                              {index + 1}
                             </div>
-                            {log.brandName && (
-                              <div className="text-xs text-neutral-500">{log.brandName}</div>
-                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-neutral-900 truncate">
+                                {log.foodName}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-neutral-500">
+                                <span>{log.quantity} {log.unit}</span>
+                                {log.brandName && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="truncate">{log.brandName}</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <div className="text-sm font-semibold text-neutral-900">
+                          <div className="text-right flex-shrink-0 ml-3">
+                            <div className="text-sm font-semibold text-primary-600">
                               {log.nutrition.calories} cal
                             </div>
                             <div className="text-xs text-neutral-500">
-                              {log.quantity} {log.unit}
+                              P: {log.nutrition.protein || 0}g
                             </div>
                           </div>
                         </div>
                       ))}
+                      <Link href="/log" className="block mt-3">
+                        <Button size="sm" variant="outline" isFullWidth>
+                          + Add More to {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
+                        </Button>
+                      </Link>
                     </div>
                   )}
                 </CardBody>

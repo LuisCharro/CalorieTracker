@@ -21,8 +21,10 @@ interface OfflineQueueContextValue {
   counts: ReturnType<typeof getOperationCounts>;
   isOnline: boolean;
   isSyncing: boolean;
+  lastSyncedAt: string | null;
   sync: () => Promise<void>;
   refresh: () => void;
+  hasPendingOperations: boolean;
 }
 
 const OfflineQueueContext = createContext<OfflineQueueContextValue | undefined>(undefined);
@@ -31,6 +33,7 @@ export function OfflineQueueProvider({ children }: { children: ReactNode }) {
   const [operations, setOperations] = useState<OfflineOperation[]>([]);
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
     setOperations(getQueue());
@@ -47,6 +50,7 @@ export function OfflineQueueProvider({ children }: { children: ReactNode }) {
     try {
       await syncOfflineQueue(userId);
       refresh();
+      setLastSyncedAt(new Date().toISOString());
     } catch (error) {
       console.error('[Offline Queue] Sync failed:', error);
     } finally {
@@ -69,6 +73,7 @@ export function OfflineQueueProvider({ children }: { children: ReactNode }) {
     const handleOnline = () => {
       setIsOnline(true);
       refresh();
+      setLastSyncedAt(new Date().toISOString());
     };
 
     const handleOffline = () => {
@@ -88,6 +93,7 @@ export function OfflineQueueProvider({ children }: { children: ReactNode }) {
   }, [refresh]);
 
   const counts = getOperationCounts();
+  const hasPendingOperations = counts.pending > 0 || counts.error > 0;
 
   return (
     <OfflineQueueContext.Provider
@@ -96,8 +102,10 @@ export function OfflineQueueProvider({ children }: { children: ReactNode }) {
         counts,
         isOnline,
         isSyncing,
+        lastSyncedAt,
         sync,
         refresh,
+        hasPendingOperations,
       }}
     >
       {children}

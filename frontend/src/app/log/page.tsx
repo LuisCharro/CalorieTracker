@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input, Card, CardHeader, CardBody, Alert } from '../../shared/components';
 import { Layout, Header, Navigation } from '../../shared/layout';
@@ -8,16 +8,31 @@ import { useAuth } from '../../core/auth';
 import { logsService } from '../../core/api/services';
 import { RouteGuard } from '../../core/auth/routeGuard';
 import { MealType } from '../../core/contracts/enums';
+import type { Nutrition } from '../../core/contracts/enums';
+import { useOfflineQueue } from '../../core/contexts/OfflineQueueContext';
+
+interface FoodItem {
+  id: string;
+  foodName: string;
+  brandName: string;
+  quantity: number;
+  unit: string;
+  nutrition: Nutrition | null;
+}
 
 export default function LogPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const [foodText, setFoodText] = useState('');
+  const { isOnline } = useOfflineQueue();
+  const [mealName, setMealName] = useState('');
   const [selectedMeal, setSelectedMeal] = useState<MealType>(MealType.LUNCH);
+  const [foodItems, setFoodItems] = useState<FoodItem[]>([
+    { id: '1', foodName: '', brandName: '', quantity: 100, unit: 'g', nutrition: null },
+  ]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isParsing, setIsParsing] = useState(false);
-  const [parsedNutrition, setParsedNutrition] = useState<any | null>(null);
+  const [isParsing, setIsParsing] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const mealTypes = [
     { value: 'breakfast', label: 'Breakfast', icon: '☀️' },
@@ -26,73 +41,96 @@ export default function LogPage() {
     { value: 'snack', label: 'Snack', icon: '🍎' },
   ];
 
-  const handleFoodTextChange = async (value: string) => {
-    setFoodText(value);
-    setError('');
+  const addItem = useCallback(() => {
+    setFoodItems(prev => [
+      ...prev,
+      { id: Date.now().toString(), foodName: '', brandName: '', quantity: 100, unit: 'g', nutrition: null },
+    ]);
+  }, []);
 
-    // Parse food text when user stops typing (debounced)
-    if (value.trim().length > 3) {
-      setIsParsing(true);
-      try {
-        const parsed = await logsService.parseFoodText(value);
-        setParsedNutrition(parsed.nutrition);
-      } catch (error) {
-        // Parsing failed, clear the parsed nutrition
-        setParsedNutrition(null);
-      } finally {
-        setIsParsing(false);
-      }
-    } else {
-      setParsedNutrition(null);
+  const removeItem = useCallback((id: string) => {
+    setFoodItems(prev => {
+      if (prev.length === 1) return prev;
+      return prev.filter(item => item.id !== id);
+    });
+  }, []);
+
+  const updateItem = useCallback((id: string, field: keyof FoodItem, value: string | number | Nutrition | null) => {
+    setFoodItems(prev =>
+      prev.map(item =>
+        item.id === id ? { ...item, [field]: value } : item
+      )
+    );
+  }, []);
+
+  const parseFoodText = useCallback(async (id: string, foodName: string) => {
+    if (foodName.trim().length < 3) {
+      updateItem(id, 'nutrition', null);
+      return;
     }
-  };
 
-  const handleLogFood = async () => {
-    if (!foodText.trim()) return;
+    setIsParsing(id);
+    try {
+      const parsed = await logsService.parseFoodText(foodName);
+      updateItem(id, 'nutrition', parsed.nutrition);
+      updateItem(id, 'quantity', parsed.quantity);
+      updateItem(id, 'unit', parsed.unit);
+    } catch {
+      updateItem(id, 'nutrition', null);
+    } finally {
+      setIsParsing(null);
+    }
+  }, [updateItem]);
+
+  const handleLogMeal = async () => {
+    const validItems = foodItems.filter(item => item.foodName.trim() && item.nutrition);
+    
+    if (validItems.length === 0) {
+      setError('Please add at least one food item with valid nutrition data');
+      return;
+    }
 
     setIsLoading(true);
     setError('');
+    setSuccess(false);
 
     try {
-      // Parse food text to get nutrition
-      let nutrition;
-      try {
-        const parsed = await logsService.parseFoodText(foodText);
-        nutrition = parsed.nutrition;
-      } catch (parseError) {
-        // If parsing fails, show an error
-        throw new Error('Could not parse food description. Try format like "100g chicken" or "2 slices bread"');
-      }
-
-      await logsService.createLog({
+      await logsService.createBatchLogs({
         userId: user!.id,
-        foodName: foodText,
-        quantity: 1,
-        unit: 'serving',
+        mealName: mealName.trim() || undefined,
         mealType: selectedMeal,
-        nutrition,
+        items: validItems.map(item => ({
+          foodName: item.foodName,
+          brandName: item.brandName || undefined,
+          quantity: item.quantity,
+          unit: item.unit,
+          nutrition: item.nutrition!,
+        })),
         loggedAt: new Date().toISOString(),
       });
 
-      // Reset form
-      setFoodText('');
-      setParsedNutrition(null);
-
-      // Show success and redirect to today
-      router.push('/today');
+      setSuccess(true);
+      setTimeout(() => {
+        router.push('/today');
+      }, 1500);
     } catch (error) {
-      console.error('Failed to log food:', error);
-      setError(error instanceof Error ? error.message : 'Failed to log food. Please try again.');
+      console.error('Failed to log meal:', error);
+      setError(error instanceof Error ? error.message : 'Failed to log meal. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const totalCalories = foodItems.reduce((sum, item) => sum + (item.nutrition?.calories || 0), 0);
+
   return (
     <RouteGuard requireAuth requireOnboardingComplete>
       <Layout maxWidth="lg">
         <div className="min-h-screen pb-24">
-          <Header title="Log Food" />
+          <Header 
+            title="Log Meal" 
+            subtitle={!isOnline ? '📴 Offline - will sync later' : undefined}
+          />
 
           {error && (
             <Alert type="danger" className="mb-4">
@@ -100,15 +138,34 @@ export default function LogPage() {
             </Alert>
           )}
 
-          <Card>
+          {success && (
+            <Alert type="success" className="mb-4">
+              Meal logged successfully! Redirecting...
+            </Alert>
+          )}
+
+          <Card className="mb-4">
             <CardBody>
               <h3 className="text-lg font-semibold text-neutral-900 mb-4">
-                What did you eat?
+                Meal Details
               </h3>
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Select meal type
+                  Meal Name (optional)
+                </label>
+                <Input
+                  type="text"
+                  placeholder="e.g., Healthy Breakfast or My Lunch"
+                  value={mealName}
+                  onChange={(e) => setMealName(e.target.value)}
+                  isFullWidth
+                />
+              </div>
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Meal Type
                 </label>
                 <div className="grid grid-cols-4 gap-2">
                   {mealTypes.map((meal) => (
@@ -130,90 +187,138 @@ export default function LogPage() {
                   ))}
                 </div>
               </div>
+            </CardBody>
+          </Card>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Food description
-                </label>
-                <Input
-                  type="text"
-                  placeholder="e.g., 100g chicken breast or 2 slices bread"
-                  value={foodText}
-                  onChange={(e) => handleFoodTextChange(e.target.value)}
-                  helperText="Describe your meal with quantity and unit"
-                  isFullWidth
-                />
-                <p className="mt-2 text-xs text-neutral-500">
-                  💡 Tip: Use format like "100g chicken", "2 slices bread", or "1 apple"
-                </p>
+          <Card className="mb-4">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-neutral-900">
+                  Food Items
+                </h3>
+                <span className="text-sm text-neutral-500">
+                  Total: {Math.round(totalCalories)} cal
+                </span>
               </div>
+            </CardHeader>
+            <CardBody>
+              <div className="space-y-4">
+                {foodItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="p-4 bg-neutral-50 rounded-lg border border-neutral-200"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <span className="text-sm font-medium text-neutral-700">
+                        Item {index + 1}
+                      </span>
+                      {foodItems.length > 1 && (
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className="text-danger-500 hover:text-danger-700 text-sm"
+                        >
+                          Remove
+                        </button>
+                      )}
+                    </div>
 
-              {/* Parsed Nutrition Preview */}
-              {parsedNutrition && (
-                <div className="mb-4 p-4 bg-neutral-50 rounded-lg border border-neutral-200">
-                  <h4 className="text-sm font-medium text-neutral-900 mb-3">Estimated Nutrition</h4>
-                  <div className="grid grid-cols-4 gap-3 text-center">
-                    <div>
-                      <div className="text-lg font-bold text-primary-600">{parsedNutrition.calories}</div>
-                      <div className="text-xs text-neutral-600">Calories</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-neutral-900">{parsedNutrition.protein}g</div>
-                      <div className="text-xs text-neutral-600">Protein</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-neutral-900">{parsedNutrition.carbohydrates}g</div>
-                      <div className="text-xs text-neutral-600">Carbs</div>
-                    </div>
-                    <div>
-                      <div className="text-lg font-bold text-neutral-900">{parsedNutrition.fat}g</div>
-                      <div className="text-xs text-neutral-600">Fat</div>
+                    <div className="grid grid-cols-1 gap-3">
+                      <div>
+                        <Input
+                          type="text"
+                          placeholder="Food name (e.g., 100g chicken breast)"
+                          value={item.foodName}
+                          onChange={(e) => {
+                            updateItem(item.id, 'foodName', e.target.value);
+                            parseFoodText(item.id, e.target.value);
+                          }}
+                          isFullWidth
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        <Input
+                          type="number"
+                          placeholder="Qty"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                        />
+                        <Input
+                          type="text"
+                          placeholder="Unit"
+                          value={item.unit}
+                          onChange={(e) => updateItem(item.id, 'unit', e.target.value)}
+                        />
+                        <Input
+                          type="text"
+                          placeholder="Brand (opt)"
+                          value={item.brandName}
+                          onChange={(e) => updateItem(item.id, 'brandName', e.target.value)}
+                        />
+                      </div>
+
+                      {isParsing === item.id && (
+                        <div className="text-sm text-neutral-500 flex items-center gap-2">
+                          <div className="animate-spin h-4 w-4 border-2 border-neutral-300 border-t-primary-500 rounded-full" />
+                          Parsing nutrition...
+                        </div>
+                      )}
+
+                      {item.nutrition && (
+                        <div className="p-3 bg-white rounded-lg border border-neutral-100">
+                          <div className="grid grid-cols-4 gap-2 text-center text-sm">
+                            <div>
+                              <div className="font-semibold text-primary-600">{item.nutrition.calories}</div>
+                              <div className="text-xs text-neutral-500">cal</div>
+                            </div>
+                            <div>
+                              <div className="font-semibold">{item.nutrition.protein}g</div>
+                              <div className="text-xs text-neutral-500">protein</div>
+                            </div>
+                            <div>
+                              <div className="font-semibold">{item.nutrition.carbohydrates}g</div>
+                              <div className="text-xs text-neutral-500">carbs</div>
+                            </div>
+                            <div>
+                              <div className="font-semibold">{item.nutrition.fat}g</div>
+                              <div className="text-xs text-neutral-500">fat</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              )}
+                ))}
+              </div>
 
               <Button
-                onClick={handleLogFood}
-                isLoading={isLoading || isParsing}
+                onClick={addItem}
+                variant="outline"
                 isFullWidth
-                size="lg"
-                disabled={!foodText.trim()}
+                className="mt-4"
               >
-                {isParsing ? 'Parsing...' : 'Log Food'}
+                + Add Another Item
               </Button>
             </CardBody>
           </Card>
 
-          {/* Quick Add Section */}
-          <Card className="mt-6">
-            <CardHeader>
-              <h3 className="text-lg font-semibold text-neutral-900">
-                Quick Add
-              </h3>
-            </CardHeader>
-            <CardBody>
-              <div className="space-y-3">
-                {['100g chicken breast', '200g brown rice', '1 large apple', '150g greek yogurt'].map((food, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleFoodTextChange(food)}
-                    className="w-full rounded-lg border border-neutral-200 p-3 text-left hover:bg-neutral-50 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-neutral-900">{food}</span>
-                      <svg className="h-5 w-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </CardBody>
-          </Card>
+          <Button
+            onClick={handleLogMeal}
+            isLoading={isLoading}
+            isFullWidth
+            size="lg"
+            disabled={foodItems.every(item => !item.foodName.trim())}
+          >
+            Log {foodItems.filter(i => i.foodName.trim()).length} Item{foodItems.filter(i => i.foodName.trim()).length !== 1 ? 's' : ''} ({Math.round(totalCalories)} cal)
+          </Button>
+
+          {!isOnline && (
+            <p className="text-center text-sm text-neutral-500 mt-3">
+              📴 Changes will be saved locally and synced when online
+            </p>
+          )}
         </div>
 
-        {/* Bottom Navigation */}
         <Navigation
           items={[
             { label: 'Today', href: '/today', icon: (

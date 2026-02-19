@@ -13,6 +13,8 @@ import type {
   ApiSuccessResponse,
   ApiErrorResponse,
   PaginatedResponse,
+  BatchCreateFoodLogRequest,
+  BatchCreateFoodLogResponse,
 } from '../../contracts/types';
 import {
   addToQueue,
@@ -36,6 +38,7 @@ export interface ParsedFood {
 export type LogsResponse = ApiSuccessResponse<FoodLog> | ApiErrorResponse;
 export type TodayResponse = ApiSuccessResponse<TodayLogsResponse> | ApiErrorResponse;
 export type PaginatedLogsResponse = PaginatedResponse<FoodLog>;
+export type BatchCreateResponse = ApiSuccessResponse<BatchCreateFoodLogResponse> | ApiErrorResponse;
 
 export class LogsService {
   private readonly basePath = '/api/logs';
@@ -151,6 +154,73 @@ export class LogsService {
           updatedAt: new Date().toISOString(),
           userId,
         } as FoodLog;
+      }
+
+      // Re-throw non-network errors
+      throw error;
+    }
+  }
+
+  /**
+   * Create multiple food logs in a batch for a meal
+   */
+  async createBatchLogs(data: BatchCreateFoodLogRequest): Promise<BatchCreateFoodLogResponse> {
+    try {
+      const response = await apiClient.post<BatchCreateResponse>(
+        `${this.basePath}/batch`,
+        data
+      );
+
+      if (!response.success) {
+        throw new Error('Failed to create batch logs');
+      }
+
+      return response.data;
+    } catch (error) {
+      // Check if it's a network error and we're offline
+      if (error instanceof ApiClientError && error.code === 'network_error' && !isOnline()) {
+        console.log('[Logs Service] Offline detected, queuing batch_create_log operations');
+
+        const userId = tokenManager.getUserId() || data.userId;
+        const results: BatchCreateFoodLogResponse['items'] = [];
+
+        // Queue each item individually for offline sync
+        for (const item of data.items) {
+          const optimisticId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          
+          addToQueue({
+            type: 'create_log',
+            data: {
+              userId,
+              foodName: item.foodName,
+              brandName: item.brandName,
+              quantity: item.quantity,
+              unit: item.unit,
+              mealType: data.mealType,
+              nutrition: item.nutrition,
+              loggedAt: data.loggedAt || new Date().toISOString(),
+              localId: optimisticId,
+            },
+            timestamp: new Date().toISOString(),
+          });
+
+          results.push({
+            id: optimisticId,
+            foodName: item.foodName,
+            success: true,
+          });
+        }
+
+        return {
+          mealName: data.mealName || data.mealType,
+          mealType: data.mealType,
+          items: results,
+          summary: {
+            total: data.items.length,
+            created: data.items.length,
+            errors: 0,
+          },
+        };
       }
 
       // Re-throw non-network errors
