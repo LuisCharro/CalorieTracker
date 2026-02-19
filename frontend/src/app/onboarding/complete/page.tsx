@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button, Card, CardBody } from '../../../shared/components';
 import { Layout } from '../../../shared/layout';
 import { useAuth } from '../../../core/auth';
-import { authService } from '../../../core/api/services';
+import { settingsService } from '../../../core/api/services';
 
 export default function OnboardingCompletePage() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function OnboardingCompletePage() {
     try {
       if (!user?.id) throw new Error('User not found');
 
-      await authService.completeOnboarding({ userId: user.id });
+      await settingsService.completeOnboarding(user.id);
       await refreshUser();
       setCompleted(true);
 

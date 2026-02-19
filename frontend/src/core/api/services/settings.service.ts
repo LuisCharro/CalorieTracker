@@ -55,6 +55,14 @@ export class SettingsService {
     // For now, we'll need to pass it explicitly
     throw new Error('User ID required. Use getNotificationSettings(userId) instead.');
   }
+
+  /**
+   * Complete onboarding for a user
+   * Marks the user as having completed onboarding
+   */
+  async completeOnboarding(userId: string): Promise<void> {
+    await apiClient.put(`${this.basePath}/${userId}/onboarding`);
+  }
 }
 
 export const settingsService = new SettingsService();
