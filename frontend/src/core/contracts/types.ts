@@ -85,11 +85,25 @@ export interface FoodLogsQuery {
   endDate?: string;
 }
 
+export interface MealGroup {
+  items: FoodLog[];
+  itemCount: number;
+  totalCalories: number;
+  totalProtein: number;
+}
+
 export interface TodayLogsResponse {
-  breakfast: FoodLog[];
-  lunch: FoodLog[];
-  dinner: FoodLog[];
-  snack: FoodLog[];
+  breakfast: MealGroup;
+  lunch: MealGroup;
+  dinner: MealGroup;
+  snack: MealGroup;
+}
+
+export interface TodayLogsApiResponse {
+  breakfast: MealGroup;
+  lunch: MealGroup;
+  dinner: MealGroup;
+  snack: MealGroup;
 }
 
 export interface BatchFoodLogItem {
@@ -113,7 +127,15 @@ export interface BatchCreateFoodLogResponse {
   mealType: MealType;
   items: Array<{
     id: string;
+    userId: string;
     foodName: string;
+    brandName: string | null;
+    quantity: number;
+    unit: string;
+    nutrition: Nutrition;
+    loggedAt: string;
+    createdAt: string;
+    updatedAt: string;
     success: boolean;
     error?: string;
   }>;
@@ -121,6 +143,10 @@ export interface BatchCreateFoodLogResponse {
     total: number;
     created: number;
     errors: number;
+  };
+  totals: {
+    calories: number;
+    protein: number;
   };
 }
 

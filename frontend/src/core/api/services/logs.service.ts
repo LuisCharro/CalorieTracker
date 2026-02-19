@@ -183,8 +183,10 @@ export class LogsService {
 
         const userId = tokenManager.getUserId() || data.userId;
         const results: BatchCreateFoodLogResponse['items'] = [];
+        const now = new Date().toISOString();
+        let totalCalories = 0;
+        let totalProtein = 0;
 
-        // Queue each item individually for offline sync
         for (const item of data.items) {
           const optimisticId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
           
@@ -198,15 +200,26 @@ export class LogsService {
               unit: item.unit,
               mealType: data.mealType,
               nutrition: item.nutrition,
-              loggedAt: data.loggedAt || new Date().toISOString(),
+              loggedAt: data.loggedAt || now,
               localId: optimisticId,
             },
-            timestamp: new Date().toISOString(),
+            timestamp: now,
           });
+
+          totalCalories += item.nutrition?.calories || 0;
+          totalProtein += item.nutrition?.protein || 0;
 
           results.push({
             id: optimisticId,
+            userId,
             foodName: item.foodName,
+            brandName: item.brandName || null,
+            quantity: item.quantity,
+            unit: item.unit,
+            nutrition: item.nutrition,
+            loggedAt: data.loggedAt || now,
+            createdAt: now,
+            updatedAt: now,
             success: true,
           });
         }
@@ -219,6 +232,10 @@ export class LogsService {
             total: data.items.length,
             created: data.items.length,
             errors: 0,
+          },
+          totals: {
+            calories: totalCalories,
+            protein: totalProtein,
           },
         };
       }

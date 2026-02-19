@@ -33,6 +33,8 @@ export default function LogPage() {
   const [isParsing, setIsParsing] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [loggedCount, setLoggedCount] = useState(0);
 
   const mealTypes = [
     { value: 'breakfast', label: 'Breakfast', icon: '☀️' },
@@ -82,7 +84,7 @@ export default function LogPage() {
     }
   }, [updateItem]);
 
-  const handleLogMeal = async () => {
+  const handleLogMeal = async (andAddMore = false) => {
     const validItems = foodItems.filter(item => item.foodName.trim() && item.nutrition);
     
     if (validItems.length === 0) {
@@ -109,16 +111,35 @@ export default function LogPage() {
         loggedAt: new Date().toISOString(),
       });
 
+      setLoggedCount(prev => prev + validItems.length);
       setSuccess(true);
-      setTimeout(() => {
-        router.push('/today');
-      }, 1500);
+      setSuccessMessage(`Logged ${validItems.length} item${validItems.length !== 1 ? 's' : ''} successfully!`);
+
+      if (andAddMore) {
+        setFoodItems([
+          { id: Date.now().toString(), foodName: '', brandName: '', quantity: 100, unit: 'g', nutrition: null },
+        ]);
+        setSuccess(false);
+      } else {
+        setTimeout(() => {
+          router.push('/today');
+        }, 1000);
+      }
     } catch (error) {
       console.error('Failed to log meal:', error);
       setError(error instanceof Error ? error.message : 'Failed to log meal. Please try again.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const clearForm = () => {
+    setFoodItems([
+      { id: Date.now().toString(), foodName: '', brandName: '', quantity: 100, unit: 'g', nutrition: null },
+    ]);
+    setMealName('');
+    setError('');
+    setSuccess(false);
   };
 
   const totalCalories = foodItems.reduce((sum, item) => sum + (item.nutrition?.calories || 0), 0);
@@ -140,7 +161,7 @@ export default function LogPage() {
 
           {success && (
             <Alert type="success" className="mb-4">
-              Meal logged successfully! Redirecting...
+              {successMessage} {loggedCount > 1 && `(Total: ${loggedCount} items this session)`}
             </Alert>
           )}
 
@@ -302,15 +323,36 @@ export default function LogPage() {
             </CardBody>
           </Card>
 
-          <Button
-            onClick={handleLogMeal}
-            isLoading={isLoading}
-            isFullWidth
-            size="lg"
-            disabled={foodItems.every(item => !item.foodName.trim())}
-          >
-            Log {foodItems.filter(i => i.foodName.trim()).length} Item{foodItems.filter(i => i.foodName.trim()).length !== 1 ? 's' : ''} ({Math.round(totalCalories)} cal)
-          </Button>
+          <div className="space-y-3">
+            <Button
+              onClick={() => handleLogMeal(false)}
+              isLoading={isLoading}
+              isFullWidth
+              size="lg"
+              disabled={foodItems.every(item => !item.foodName.trim())}
+            >
+              Log {foodItems.filter(i => i.foodName.trim()).length} Item{foodItems.filter(i => i.foodName.trim()).length !== 1 ? 's' : ''} ({Math.round(totalCalories)} cal)
+            </Button>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={() => handleLogMeal(true)}
+                variant="outline"
+                isFullWidth
+                disabled={foodItems.every(item => !item.foodName.trim()) || isLoading}
+              >
+                Log & Add More
+              </Button>
+              <Button
+                onClick={clearForm}
+                variant="outline"
+                isFullWidth
+                disabled={isLoading}
+              >
+                Clear Form
+              </Button>
+            </div>
+          </div>
 
           {!isOnline && (
             <p className="text-center text-sm text-neutral-500 mt-3">

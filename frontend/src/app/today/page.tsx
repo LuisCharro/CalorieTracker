@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Button, Card, CardHeader, CardBody, Alert } from '../../shared/components';
 import { Layout, Header, Navigation } from '../../shared/layout';
@@ -12,41 +12,54 @@ import { MealType, GoalType } from '../../core/contracts/enums';
 import { useOfflineQueue } from '../../core/contexts/OfflineQueueContext';
 import { OfflineQueueIndicator } from '../../components/offline/OfflineQueueIndicator';
 
+interface MealGroup {
+  items: FoodLog[];
+  itemCount: number;
+  totalCalories: number;
+  totalProtein: number;
+}
+
 export default function TodayPage() {
   const { user } = useAuth();
-  const { isOnline, isSyncing, counts, sync } = useOfflineQueue();
-  const [todayLogs, setTodayLogs] = useState<Record<MealType, FoodLog[]>>({
-    breakfast: [],
-    lunch: [],
-    dinner: [],
-    snack: [],
+  const { isOnline, isSyncing, hasPendingOperations, sync } = useOfflineQueue();
+  const [todayLogs, setTodayLogs] = useState<Record<MealType, MealGroup>>({
+    breakfast: { items: [], itemCount: 0, totalCalories: 0, totalProtein: 0 },
+    lunch: { items: [], itemCount: 0, totalCalories: 0, totalProtein: 0 },
+    dinner: { items: [], itemCount: 0, totalCalories: 0, totalProtein: 0 },
+    snack: { items: [], itemCount: 0, totalCalories: 0, totalProtein: 0 },
   });
   const [goals, setGoals] = useState<Goal[]>([]);
   const [totalCalories, setTotalCalories] = useState(0);
+  const [totalProtein, setTotalProtein] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadTodayData();
-  }, [user?.id]);
-
-  const loadTodayData = async () => {
+  const loadTodayData = useCallback(async () => {
     if (!user?.id) return;
 
     setIsLoading(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
+      if (hasPendingOperations && isOnline) {
+        await sync();
+      }
 
-      // Load today's logs
-      const todayLogs = await logsService.getTodayLogs(user.id);
-      setTodayLogs(todayLogs);
-      const total = Object.values(todayLogs).flat().reduce(
-        (sum, log) => sum + log.nutrition.calories,
-        0
-      );
-      setTotalCalories(total);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/logs/today?userId=${user.id}`);
+      const data = await response.json();
 
-      // Load active goals
+      if (data.success) {
+        const grouped = data.data;
+        setTodayLogs({
+          breakfast: grouped.breakfast || { items: [], itemCount: 0, totalCalories: 0, totalProtein: 0 },
+          lunch: grouped.lunch || { items: [], itemCount: 0, totalCalories: 0, totalProtein: 0 },
+          dinner: grouped.dinner || { items: [], itemCount: 0, totalCalories: 0, totalProtein: 0 },
+          snack: grouped.snack || { items: [], itemCount: 0, totalCalories: 0, totalProtein: 0 },
+        });
+        setTotalCalories(data.summary?.totalCalories || 0);
+        setTotalProtein(data.summary?.totalProtein || 0);
+      }
+
       const goalsResponse = await goalsService.getGoals({
         userId: user.id,
         isActive: true,
@@ -61,12 +74,31 @@ export default function TodayPage() {
     } finally {
       setIsLoading(false);
     }
+  }, [user?.id, hasPendingOperations, isOnline, sync]);
+
+  useEffect(() => {
+    loadTodayData();
+  }, [loadTodayData]);
+
+  const handleDeleteItem = async (logId: string) => {
+    setDeletingId(logId);
+    try {
+      await logsService.deleteLog(logId);
+      setShowDeleteConfirm(null);
+      await loadTodayData();
+    } catch (err) {
+      console.error('Failed to delete item:', err);
+      setError('Failed to delete item');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const dailyGoal = goals.find(g => g.goalType === 'daily_calories');
   const targetCalories = dailyGoal?.targetValue || 2000;
   const remainingCalories = targetCalories - totalCalories;
   const progress = Math.min((totalCalories / targetCalories) * 100, 100);
+  const totalItems = Object.values(todayLogs).reduce((sum, meal) => sum + meal.itemCount, 0);
 
   const mealIcons: Record<MealType, string> = {
     breakfast: '☀️',
@@ -123,7 +155,7 @@ export default function TodayPage() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-neutral-600">Calories today</span>
                   <span className="text-sm text-neutral-600">
-                    {totalCalories} / {targetCalories}
+                    {Math.round(totalCalories)} / {targetCalories}
                   </span>
                 </div>
                 <div className="h-3 bg-neutral-200 rounded-full overflow-hidden">
@@ -134,14 +166,18 @@ export default function TodayPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-4 gap-4 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-neutral-900">{totalCalories}</div>
-                  <div className="text-xs text-neutral-600">Consumed</div>
+                  <div className="text-2xl font-bold text-neutral-900">{Math.round(totalCalories)}</div>
+                  <div className="text-xs text-neutral-600">Calories</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-neutral-900">{Math.round(totalProtein)}g</div>
+                  <div className="text-xs text-neutral-600">Protein</div>
                 </div>
                 <div>
                   <div className={`text-2xl font-bold ${remainingCalories >= 0 ? 'text-success-600' : 'text-danger-600'}`}>
-                    {remainingCalories}
+                    {Math.round(remainingCalories)}
                   </div>
                   <div className="text-xs text-neutral-600">Remaining</div>
                 </div>
@@ -169,9 +205,7 @@ export default function TodayPage() {
 
           {/* Meals */}
           {(Object.keys(mealIcons) as MealType[]).map((mealType) => {
-            const logs = todayLogs[mealType];
-            const mealCalories = logs.reduce((sum, log) => sum + log.nutrition.calories, 0);
-            const itemCount = logs.length;
+            const meal = todayLogs[mealType];
 
             return (
               <Card key={mealType} className="mb-4">
@@ -183,22 +217,23 @@ export default function TodayPage() {
                         <h3 className="text-lg font-semibold text-neutral-900 capitalize">
                           {mealType}
                         </h3>
-                        {itemCount > 0 && (
+                        {meal.itemCount > 0 && (
                           <p className="text-xs text-neutral-500">
-                            {itemCount} item{itemCount !== 1 ? 's' : ''}
+                            {meal.itemCount} item{meal.itemCount !== 1 ? 's' : ''} • {Math.round(meal.totalProtein)}g protein
                           </p>
                         )}
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="text-sm font-semibold text-neutral-900">
-                        {mealCalories} cal
+                      <span className="text-lg font-bold text-primary-600">
+                        {Math.round(meal.totalCalories)}
                       </span>
+                      <span className="text-sm text-neutral-500"> cal</span>
                     </div>
                   </div>
                 </CardHeader>
                 <CardBody>
-                  {logs.length === 0 ? (
+                  {meal.items.length === 0 ? (
                     <div className="text-center py-6">
                       <p className="text-sm text-neutral-500 mb-3">
                         No {mealType} logged yet
@@ -211,7 +246,7 @@ export default function TodayPage() {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {logs.map((log, index) => (
+                      {meal.items.map((log, index) => (
                         <div
                           key={log.id}
                           className="flex items-center justify-between py-3 px-3 bg-neutral-50 rounded-lg hover:bg-neutral-100 transition-colors"
@@ -235,13 +270,42 @@ export default function TodayPage() {
                               </div>
                             </div>
                           </div>
-                          <div className="text-right flex-shrink-0 ml-3">
-                            <div className="text-sm font-semibold text-primary-600">
-                              {log.nutrition.calories} cal
+                          <div className="flex items-center gap-2">
+                            <div className="text-right flex-shrink-0">
+                              <div className="text-sm font-semibold text-primary-600">
+                                {log.nutrition?.calories || 0} cal
+                              </div>
+                              <div className="text-xs text-neutral-500">
+                                P: {log.nutrition?.protein || 0}g
+                              </div>
                             </div>
-                            <div className="text-xs text-neutral-500">
-                              P: {log.nutrition.protein || 0}g
-                            </div>
+                            {showDeleteConfirm === log.id ? (
+                              <div className="flex items-center gap-1">
+                                <button
+                                  onClick={() => handleDeleteItem(log.id)}
+                                  disabled={deletingId === log.id}
+                                  className="px-2 py-1 text-xs bg-danger-500 text-white rounded hover:bg-danger-600"
+                                >
+                                  {deletingId === log.id ? '...' : 'Confirm'}
+                                </button>
+                                <button
+                                  onClick={() => setShowDeleteConfirm(null)}
+                                  className="px-2 py-1 text-xs bg-neutral-300 text-neutral-700 rounded hover:bg-neutral-400"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setShowDeleteConfirm(log.id)}
+                                className="p-1 text-neutral-400 hover:text-danger-500 transition-colors"
+                                title="Delete item"
+                              >
+                                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -258,7 +322,7 @@ export default function TodayPage() {
           })}
 
           {/* Empty State */}
-          {Object.values(todayLogs).every(logs => logs.length === 0) && (
+          {totalItems === 0 && (
             <Card>
               <CardBody className="py-12 text-center">
                 <div className="text-6xl mb-4">🥗</div>
