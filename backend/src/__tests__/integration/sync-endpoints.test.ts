@@ -364,4 +364,131 @@ describe('Offline Queue / Sync Endpoints', () => {
       expect(response.body.error.code).toBe('validation_error');
     });
   });
+
+  describe('POST /api/logs/batch - Multi-item meal logging', () => {
+    it('should create multiple food logs in a batch', async () => {
+      const response = await request(app)
+        .post('/api/logs/batch')
+        .send({
+          userId: testUserId,
+          mealName: 'Healthy Breakfast',
+          mealType: 'breakfast',
+          items: [
+            {
+              foodName: 'Oatmeal',
+              brandName: 'Quaker',
+              quantity: 100,
+              unit: 'g',
+              nutrition: { calories: 389, protein: 16.9, carbohydrates: 66, fat: 6.9 },
+            },
+            {
+              foodName: 'Banana',
+              quantity: 120,
+              unit: 'g',
+              nutrition: { calories: 105, protein: 1.3, carbohydrates: 27, fat: 0.4 },
+            },
+            {
+              foodName: 'Greek Yogurt',
+              brandName: 'Fage',
+              quantity: 150,
+              unit: 'g',
+              nutrition: { calories: 100, protein: 18, carbohydrates: 6, fat: 0.7 },
+            },
+          ],
+        })
+        .expect(201);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.mealName).toBe('Healthy Breakfast');
+      expect(response.body.data.mealType).toBe('breakfast');
+      expect(response.body.data.summary.total).toBe(3);
+      expect(response.body.data.summary.created).toBe(3);
+      expect(response.body.data.summary.errors).toBe(0);
+      expect(response.body.data.items).toHaveLength(3);
+
+      for (const item of response.body.data.items) {
+        expect(item.success).toBe(true);
+        expect(item.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+      }
+
+      const result = await query(
+        `SELECT food_name FROM food_logs WHERE user_id = $1 AND meal_type = 'breakfast' AND is_deleted = FALSE ORDER BY food_name`,
+        [testUserId]
+      );
+      expect(result.rows.length).toBe(3);
+    });
+
+    it('should handle partial failures in batch', async () => {
+      const response = await request(app)
+        .post('/api/logs/batch')
+        .send({
+          userId: testUserId,
+          mealType: 'lunch',
+          items: [
+            {
+              foodName: 'Valid Item',
+              quantity: 100,
+              unit: 'g',
+              nutrition: { calories: 100 },
+            },
+            {
+              foodName: 'Invalid Item',
+            },
+            {
+              foodName: 'Another Valid',
+              quantity: 50,
+              unit: 'g',
+              nutrition: { calories: 50 },
+            },
+          ],
+        })
+        .expect(201);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.data.summary.total).toBe(3);
+      expect(response.body.data.summary.created).toBe(2);
+      expect(response.body.data.summary.errors).toBe(1);
+      expect(response.body.data.items[1].success).toBe(false);
+    });
+
+    it('should reject empty items array', async () => {
+      const response = await request(app)
+        .post('/api/logs/batch')
+        .send({
+          userId: testUserId,
+          mealType: 'breakfast',
+          items: [],
+        })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('validation_error');
+    });
+
+    it('should reject missing userId', async () => {
+      const response = await request(app)
+        .post('/api/logs/batch')
+        .send({
+          mealType: 'breakfast',
+          items: [{ foodName: 'Test', quantity: 100, unit: 'g', nutrition: { calories: 100 } }],
+        })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('validation_error');
+    });
+
+    it('should reject missing mealType', async () => {
+      const response = await request(app)
+        .post('/api/logs/batch')
+        .send({
+          userId: testUserId,
+          items: [{ foodName: 'Test', quantity: 100, unit: 'g', nutrition: { calories: 100 } }],
+        })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('validation_error');
+    });
+  });
 });

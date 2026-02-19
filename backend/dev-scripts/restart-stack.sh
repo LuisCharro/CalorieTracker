@@ -70,6 +70,11 @@ echo "Starting PostgreSQL container..."
 cd "${BACKEND_DIR}"
 docker compose up -d
 
+echo "Ensuring test database is ready..."
+"${BACKEND_DIR}/scripts/ensure_test_db.sh" || {
+  echo "Warning: Test database setup had issues, but continuing..."
+}
+
 echo "Running backend migrations..."
 npm run migrate
 

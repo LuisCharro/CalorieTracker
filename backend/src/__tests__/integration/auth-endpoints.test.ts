@@ -133,3 +133,171 @@ describe('Auth Endpoints Integration Tests', () => {
     expect(getResponse.body.error).toHaveProperty('code', 'not_found');
   });
 });
+
+describe('Auth Error Attack Scenarios', () => {
+  let validUserId: string;
+  const validEmail = `attack-test-${uuidv4()}@example.com`;
+
+  beforeAll(async () => {
+    const response = await request(app)
+      .post('/api/auth/register')
+      .send({
+        email: validEmail,
+        password: 'ValidPassword123!',
+        displayName: 'Attack Test User',
+      });
+    validUserId = response.body.data.id;
+  });
+
+  describe('Registration Attack Scenarios', () => {
+    it('should reject invalid email format', async () => {
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send({
+          email: 'not-an-email',
+          password: 'TestPassword123!',
+        })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('validation_error');
+    });
+
+    it('should reject short password', async () => {
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send({
+          email: `short-pw-${uuidv4()}@example.com`,
+          password: 'short',
+        })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('validation_error');
+    });
+
+    it('should reject empty body', async () => {
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send({})
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('validation_error');
+    });
+
+    it('should reject malformed JSON', async () => {
+      const response = await request(app)
+        .post('/api/auth/register')
+        .set('Content-Type', 'application/json')
+        .send('{"email": "test@example.com", "password": "Test123!"')
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+    });
+  });
+
+  describe('Login Attack Scenarios', () => {
+    it('should reject wrong password', async () => {
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: validEmail,
+          password: 'WrongPassword123!',
+        })
+        .expect(401);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('unauthorized');
+    });
+
+    it('should reject login with missing password', async () => {
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: validEmail,
+        })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('validation_error');
+    });
+
+    it('should reject login with missing email', async () => {
+      const response = await request(app)
+        .post('/api/auth/login')
+        .send({
+          password: 'TestPassword123!',
+        })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('validation_error');
+    });
+  });
+
+  describe('User Operations Attack Scenarios', () => {
+    it('should reject get user with invalid UUID', async () => {
+      const response = await request(app)
+        .get('/api/auth/user/not-a-uuid')
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('validation_error');
+    });
+
+    it('should reject get user with non-existent UUID', async () => {
+      const fakeId = uuidv4();
+      const response = await request(app)
+        .get(`/api/auth/user/${fakeId}`)
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('not_found');
+    });
+
+    it('should reject update with no fields', async () => {
+      const response = await request(app)
+        .patch(`/api/auth/user/${validUserId}`)
+        .send({})
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('validation_error');
+    });
+
+    it('should reject update non-existent user', async () => {
+      const fakeId = uuidv4();
+      const response = await request(app)
+        .patch(`/api/auth/user/${fakeId}`)
+        .send({ displayName: 'Hacker' })
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('not_found');
+    });
+  });
+
+  describe('Onboarding Attack Scenarios', () => {
+    it('should reject onboarding completion with invalid UUID', async () => {
+      const response = await request(app)
+        .patch('/api/auth/user/not-a-uuid/onboarding')
+        .send({ onboardingComplete: true })
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('validation_error');
+    });
+
+    it('should reject onboarding for non-existent user', async () => {
+      const fakeId = uuidv4();
+      const response = await request(app)
+        .patch(`/api/auth/user/${fakeId}/onboarding`)
+        .send({ onboardingComplete: true })
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.error.code).toBe('not_found');
+    });
+  });
+});

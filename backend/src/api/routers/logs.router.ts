@@ -329,6 +329,113 @@ router.patch('/:foodLogId', async (req, res) => {
 });
 
 /**
+ * POST /api/logs/batch
+ * Create multiple food logs for a meal (batch operation)
+ */
+router.post('/batch', async (req, res) => {
+  const { userId, mealName, mealType, items, loggedAt } = req.body;
+
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'validation_error',
+        message: 'userId is required',
+      },
+    });
+  }
+
+  if (!mealType) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'validation_error',
+        message: 'mealType is required',
+      },
+    });
+  }
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'validation_error',
+        message: 'items must be a non-empty array',
+      },
+    });
+  }
+
+  const loggedAtValue = loggedAt ? new Date(loggedAt) : new Date();
+  const results: Array<{ id: string; foodName: string; success: boolean; error?: string }> = [];
+
+  for (const item of items) {
+    try {
+      if (!item.foodName || !item.quantity || !item.unit || !item.nutrition) {
+        results.push({
+          id: '',
+          foodName: item.foodName || 'Unknown',
+          success: false,
+          error: 'Missing required fields: foodName, quantity, unit, nutrition',
+        });
+        continue;
+      }
+
+      const id = uuidv4();
+      await query(
+        `INSERT INTO food_logs (id, user_id, food_name, brand_name, quantity, unit, meal_type, nutrition, logged_at, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        [
+          id,
+          userId,
+          item.foodName,
+          item.brandName || null,
+          item.quantity,
+          item.unit,
+          mealType,
+          JSON.stringify(item.nutrition),
+          loggedAtValue,
+          new Date(),
+          new Date(),
+        ]
+      );
+
+      results.push({
+        id,
+        foodName: item.foodName,
+        success: true,
+      });
+    } catch (error) {
+      results.push({
+        id: '',
+        foodName: item.foodName || 'Unknown',
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  }
+
+  const successCount = results.filter(r => r.success).length;
+  const errorCount = results.filter(r => !r.success).length;
+
+  res.status(201).json({
+    success: errorCount === 0,
+    data: {
+      mealName: mealName || mealType,
+      mealType,
+      items: results,
+      summary: {
+        total: items.length,
+        created: successCount,
+        errors: errorCount,
+      },
+    },
+    meta: {
+      timestamp: new Date().toISOString(),
+    },
+  });
+});
+
+/**
  * DELETE /api/logs/:foodLogId
  * Soft delete a food log
  */
