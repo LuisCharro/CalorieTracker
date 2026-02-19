@@ -2,6 +2,8 @@
 
 This guide shows how to start the complete CalorieTracker stack (FrontEnd + Backend + Database) for local development and E2E testing.
 
+> **Note:** The docs below still refer to the legacy `/Users/luis/Repos/CalorieTracker_BackEnd` and `/Users/luis/Repos/CalorieTracker_FrontEnd` paths. The current canonical workspace is `/Users/luis/Repos/CalorieTracker`, and the implementation code lives inside the `backend/`, `frontend/`, and `plan/` subfolders. Run `scripts/start_calorietracker.sh` from the aggregator root whenever you want the same full-stack behavior with lasers-sharp environment setup.
+
 ## Prerequisites
 
 - Node.js 20+

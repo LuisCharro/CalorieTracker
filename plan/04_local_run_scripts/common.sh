@@ -4,8 +4,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLAN_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
-BACKEND_DIR="/Users/luis/Repos/CalorieTracker_BackEnd"
-FRONTEND_DIR="/Users/luis/Repos/CalorieTracker_FrontEnd"
+AGGREGATOR_ROOT="/Users/luis/Repos/CalorieTracker"
+BACKEND_DIR="${AGGREGATOR_ROOT}/backend"
+FRONTEND_DIR="${AGGREGATOR_ROOT}/frontend"
 
 RUNTIME_DIR="${PLAN_DIR}/.runtime"
 LOG_DIR="${RUNTIME_DIR}/logs"

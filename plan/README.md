@@ -159,10 +159,13 @@ Use this folder as the **mandatory pre-merge process** for AI-assisted implement
 ## Notes
 
 - This directory is intentionally separate from code repos.
-- Keep implementation code in:
-  - `CalorieTracker_BackEnd/`
-  - `CalorieTracker_FrontEnd/`
 - Keep research, decisions, and external docs here.
+- The current canonical workspace is `/Users/luis/Repos/CalorieTracker`. It contains:
+  - `backend/` (formerly `CalorieTracker_BackEnd/`)
+  - `frontend/` (formerly `CalorieTracker_FrontEnd/`)
+  - `plan/` (this folder)
+- When you encounter legacy references to `CalorieTracker_BackEnd`, `CalorieTracker_FrontEnd`, or `CalorieTracker_Plan` in these documents, treat them as historical; substitute the corresponding subfolder under `/Users/luis/Repos/CalorieTracker` when running commands today.
+- Use `scripts/start_calorietracker.sh` from the aggregator root to start Postgres, backend, and frontend in one go—the script prints the LAN URLs and handles the env setup.
 
 ## Maintenance Rules (Important)
 
