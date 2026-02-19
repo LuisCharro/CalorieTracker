@@ -45,6 +45,7 @@ export default function TodayPage() {
 
       // Load active goals
       const goalsResponse = await goalsService.getGoals({
+        userId: user.id,
         isActive: true,
         goalType: GoalType.DAILY_CALORIES,
       });

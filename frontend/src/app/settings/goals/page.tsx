@@ -25,6 +25,7 @@ export default function SettingsGoalsPage() {
     setIsLoading(true);
     try {
       const response = await goalsService.getGoals({
+        userId: user.id,
         goalType: GoalType.DAILY_CALORIES,
       });
 

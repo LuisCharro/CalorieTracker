@@ -77,6 +77,7 @@ export interface UpdateFoodLogRequest {
 }
 
 export interface FoodLogsQuery {
+  userId?: string;
   page?: number;
   pageSize?: number;
   mealType?: MealType;
@@ -132,6 +133,7 @@ export interface GoalProgress {
 }
 
 export interface GoalsQuery {
+  userId?: string;
   page?: number;
   pageSize?: number;
   isActive?: boolean;

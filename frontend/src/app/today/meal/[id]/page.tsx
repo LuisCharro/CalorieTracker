@@ -29,6 +29,7 @@ function MealDetailContent() {
 
       try {
         const response = await logsService.getLogs({
+          userId: user.id,
           startDate: date,
           endDate: date,
           mealType,
