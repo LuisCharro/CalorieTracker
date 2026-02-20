@@ -1,97 +1,90 @@
-# Execution plan for CalorieTracker MVP (post-cycle 39)
+# Execution plan for CalorieTracker MVP (post-cycle 40)
 
 ## Context
+- Cycle 40 completed error simulation infrastructure and test coverage expansion.
 - Cycle 39 completed multi-item meal logging with full backend/frontend integration.
 - Cycle 38 implemented batch food log creation with frontend integration.
 - Cycle 37 wired onboarding completion to correct backend endpoint.
 - The stack is stable: backend (port 4000), frontend (port 3000), PostgreSQL (Docker).
 
-## Cycle 39 Summary - Multi-Item Meal Logging Complete
+## Cycle 40 Summary - Error Simulation & Test Infrastructure
 
-### Backend (Commit `cbcb2e6`)
-| Endpoint | Enhancement |
-|----------|-------------|
-| POST /api/logs/batch | Returns complete item details with totals |
-| GET /api/logs/today | Groups by meal with itemCount, totalCalories, totalProtein |
-| GET /api/logs?groupByMeal=true | History with meal grouping and mealTotals |
-| GET /api/logs/meal/:mealType | Items for specific meal/date with totals |
+### Backend (Commit `bddc9ab`)
+| Feature | Description |
+|---------|-------------|
+| Error Simulation Endpoints | /api/test/errors/* for testing error scenarios |
+| Test Mode Utility | src/utils/test-mode.ts for conditional feature enabling |
+| Smoke Tests Updated | Error endpoint coverage in smoke-auth-onboarding.sh |
+| Test DB Integration | Already integrated from Cycle 38 |
 
-### Frontend (Commit `0b9785b`)
-| Component | Enhancement |
-|-----------|-------------|
-| Log Page | "Log & Add More" button, session counter, clear form |
-| Today View | Delete with confirmation, auto-sync, 4-column summary |
-| Types | MealGroup interface, BatchCreateFoodLogResponse with totals |
+### Frontend (Commit `2123736`)
+| Feature | Description |
+|---------|-------------|
+| MSW Error Handlers | All error simulation endpoints mocked |
+| E2E Error Tests | 36 new tests for error scenarios |
+| Total E2E Tests | 138 tests passing |
 
-### Test Coverage
-- **Backend:** 119 tests passing (+12 logs-endpoints)
-- **Frontend E2E:** 102 tests passing (+10 multi-item-meal)
+### Error Simulation Endpoints
+```
+GET  /api/test/errors/status     - Test mode status
+GET  /api/test/errors/500        - Server error simulation
+POST /api/test/errors/500        - Server error for POST
+GET  /api/test/errors/timeout    - Timeout simulation
+GET  /api/test/errors/slow       - Slow response
+GET  /api/test/errors/503        - Service unavailable
+GET  /api/test/errors/429        - Rate limiting
+GET  /api/test/errors/401        - Unauthorized
+GET  /api/test/errors/403        - Forbidden
+GET  /api/test/errors/400        - Validation error with details
+```
 
 ## Priorities
-1. **Multi-item meal logging** ✅ COMPLETE - Backend and frontend fully implemented
-2. **Enhanced retrieval endpoints** ✅ COMPLETE - Today view, history grouping, meal-specific endpoints
-3. **Test coverage** ✅ COMPLETE - 119 backend tests, 102 e2e tests passing
+1. **Error simulation infrastructure** ✅ COMPLETE - Backend and frontend implemented
+2. **E2E error test coverage** ✅ COMPLETE - 36 new error scenario tests
+3. **Test database stability** ✅ COMPLETE - Automated setup integrated
 
 ## Backend tasks
-- [x] Confirm `calorietracker_test` schema mirrors production migrations
-  - **Status:** ✅ COMPLETE - Script at `backend/scripts/ensure_test_db.sh`, integrated into restart-stack.sh
-- [x] Add integration coverage for onboarding endpoints
-  - **Status:** ✅ COMPLETE - Smoke test at `backend/dev-scripts/smoke-auth-onboarding.sh`
-- [x] **Multi-item meal logging (Cycle 38-39)**
-  - POST /api/logs/batch - Creates multiple food logs per meal
-  - Returns complete item details (not just summary)
-  - Supports partial failures with error details
-- [x] **Enhanced retrieval endpoints (Cycle 39)**
-  - GET /api/logs/today - Grouped by meal with item counts and totals
-  - GET /api/logs?groupByMeal=true - History with meal grouping
-  - GET /api/logs/meal/:mealType - Items for specific meal on date
-  - All endpoints maintain insertion order and return calorie/protein totals
-- [ ] Audit data model against `plan/02_architecture_gdpr/26_FINAL_data_model...` and align any missing fields
-- [ ] Support automated cleanup of the `.runtime` state (log rotation + docker compose down)
+- [x] Add error-simulation endpoints
+  - **Status:** ✅ COMPLETE - `/api/test/errors/*` endpoints available
+- [x] Audit and standardize error response structures
+  - **Status:** ✅ COMPLETE - Consistent { success, error: { code, message, details? } }
+- [x] Create test-mode helper utility
+  - **Status:** ✅ COMPLETE - `src/utils/test-mode.ts`
+- [x] Update smoke-auth-onboarding.sh with error tests
+  - **Status:** ✅ COMPLETE - Error simulation tests added
+- [x] Integrate ensure_test_db.sh in restart-stack.sh
+  - **Status:** ✅ COMPLETE - Already done in Cycle 38
+- [ ] Audit data model against final data model document
+- [ ] Support automated cleanup of the `.runtime` state
 
 ## Frontend tasks
-- [x] Tighten the onboarding screens to match backend contract
-  - **Status:** ✅ COMPLETE
-- [x] Generate frontend component inventory
-  - **Status:** ✅ COMPLETE - Document at `plan/02_architecture_gdpr/30_FRONTEND_COMPONENT_INVENTORY.md`
-- [x] **Multi-item log page (Cycle 38)**
-  - Dynamic add/remove food items
-  - Auto-parse nutrition from food descriptions
-  - Offline support with queue integration
-- [x] **Enhanced Today view (Cycle 38-39)**
-  - Item count per meal
-  - Numbered items with visual hierarchy
-  - Offline/sync status indicators
-  - Delete functionality with confirmation
-  - Auto-sync before loading data
-- [x] **Continuous logging (Cycle 39)**
-  - "Log & Add More" button for session-based logging
-  - Clear form button
-  - Session item counter
-- [ ] Add error-state mocks for login/onboarding flows (Playwright verification)
-- [ ] Update `plan/04_local_run_scripts/README.md` with aggregator-root script documentation
+- [x] Add MSW handlers for error scenarios
+  - **Status:** ✅ COMPLETE - All error endpoints mocked
+- [x] Expand E2E tests for error scenarios
+  - **Status:** ✅ COMPLETE - 36 new tests in error-scenarios.spec.ts
+- [x] Verify user-friendly error messages
+  - **Status:** ✅ COMPLETE - All error states tested
+- [ ] Add error-state mocks for login/onboarding flows (additional Playwright coverage)
+- [ ] Update local run scripts README
 
-## Test Coverage (Cycle 39)
-- **Backend tests:** 119 passing
-  - 12 logs-endpoints tests (newly enabled)
-  - 15+ error attack tests for auth/onboarding
-  - Batch endpoint tests with complete item validation
-- **Frontend e2e tests:** 102 passing (Chromium, Firefox, WebKit)
-  - 10 new multi-item-meal tests
-- **Smoke tests:** All passing (register, login, preferences)
+## Test Coverage (Cycle 40)
+- **Backend smoke tests:** All passing (auth + error simulation)
+- **Frontend E2E tests:** 138 passing (+36 error scenarios)
+- **Browsers tested:** Chromium, Firefox, WebKit
 
-## API Endpoints Summary
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | /api/logs/batch | Create multiple items per meal with complete details |
-| GET | /api/logs/today | Today's logs grouped by meal with totals |
-| GET | /api/logs?groupByMeal=true | History with meal grouping |
-| GET | /api/logs/meal/:mealType | Items for specific meal on date |
-| GET | /api/logs/:foodLogId | Single item by ID |
-| POST | /api/logs | Create single item |
-| PATCH | /api/logs/:foodLogId | Update item |
-| DELETE | /api/logs/:foodLogId | Soft delete item |
+## Error Response Standard
+All error responses follow this structure:
+```json
+{
+  "success": false,
+  "error": {
+    "code": "error_code",
+    "message": "Human-readable message",
+    "details": [...], // optional
+    "retryAfter": 30  // optional, for rate limiting/503
+  }
+}
+```
 
 ## Workflow & Automation
 - Continue running orchestrator cycles for remaining tasks
@@ -99,5 +92,5 @@
 
 ## Next checkpoint
 - Audit data model against final data model document
-- Implement remaining error-state mocks for e2e tests
-- Add automated cleanup scripts for .runtime state
+- Implement automated cleanup scripts for .runtime state
+- Additional Playwright error state mocks
