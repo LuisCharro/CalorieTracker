@@ -11,6 +11,22 @@ PID_DIR="${RUNTIME_DIR}/pids"
 
 mkdir -p "${LOG_DIR}" "${PID_DIR}"
 
+rotate_logs() {
+  local log_file="$1"
+  local max_logs="${LOG_ROTATION_COUNT:-5}"
+  if [[ -f "${log_file}" ]]; then
+    for ((i=max_logs-1; i>=1; i--)); do
+      if [[ -f "${log_file}.${i}" ]]; then
+        mv "${log_file}.${i}" "${log_file}.$((i+1))"
+      fi
+    done
+    mv "${log_file}" "${log_file}.1"
+  fi
+}
+
+rotate_logs "${LOG_DIR}/backend.log"
+rotate_logs "${LOG_DIR}/frontend.log"
+
 BACKEND_LOG="${LOG_DIR}/backend.log"
 FRONTEND_LOG="${LOG_DIR}/frontend.log"
 BACKEND_PID_FILE="${PID_DIR}/backend.pid"
