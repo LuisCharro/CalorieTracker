@@ -105,4 +105,38 @@ if [[ "${err_429}" != "429" ]]; then
 fi
 health_check "error_429"
 
+echo "10) create goal"
+goal_json="$(curl -sS \
+  -X POST "${API_URL}/api/goals" \
+  -H "Content-Type: application/json" \
+  -d "{\"userId\":\"${user_id}\",\"goalType\":\"daily_calories\",\"targetValue\":2000,\"startDate\":\"2025-01-01\"}")"
+goal_id="$(echo "${goal_json}" | sed -n 's/.*"id":"\([^"]*\)".*/\1/p')"
+if [[ -z "${goal_id}" ]]; then
+  echo "Failed to parse goal id from create goal response"
+  exit 1
+fi
+echo "create_goal_id:${goal_id}"
+health_check "create_goal"
+
+echo "11) get goals for user"
+goals_code="$(curl -sS -o /dev/null -w '%{http_code}' "${API_URL}/api/goals?userId=${user_id}")"
+echo "get_goals:${goals_code}"
+if [[ "${goals_code}" != "200" ]]; then
+  echo "Expected get goals to return 200"
+  exit 1
+fi
+health_check "get_goals"
+
+echo "12) submit consents"
+consents_code="$(curl -sS -o /dev/null -w '%{http_code}' \
+  -X POST "${API_URL}/api/auth/user/${user_id}/consents" \
+  -H "Content-Type: application/json" \
+  -d '{"consents":{"terms":true,"privacy":true,"marketing":false}}')"
+echo "submit_consents:${consents_code}"
+if [[ "${consents_code}" != "200" ]]; then
+  echo "Expected consents to return 200"
+  exit 1
+fi
+health_check "submit_consents"
+
 echo "Smoke auth/onboarding passed."
