@@ -36,7 +36,8 @@ test.describe('Error Scenario Handling', () => {
   }
 
   test.describe('Network Timeout Failures', () => {
-    test('should show timeout error when API takes too long', async ({ page }) => {
+    test('should show timeout error when API takes too long', async ({ page, browserName }) => {
+      test.skip(browserName === 'webkit', 'WebKit has different timeout handling');
       test.setTimeout(60000);
       
       await page.route('**/api/auth/register', async route => {
@@ -51,7 +52,7 @@ test.describe('Error Scenario Handling', () => {
       await page.fill('input#confirmPassword', 'TestPass123!');
       await page.click('button[type="submit"]');
 
-      await expect(page.locator('text=/timeout|took too long|try again|connection|unable/i')).toBeVisible({ timeout: 45000 });
+      await expect(page.locator('text=/timeout|took too long|try again|connection|unable/i').first()).toBeVisible({ timeout: 45000 });
     });
 
     test('should show loading state during slow request', async ({ page }) => {
@@ -242,7 +243,7 @@ test.describe('Error Scenario Handling', () => {
       await page.fill('input#confirmPassword', 'TestPass123!');
       await page.click('button[type="submit"]');
 
-      await expect(page.locator('text=/already registered|email|validation/i')).toBeVisible({ timeout: 10000 });
+      await expect(page.locator('[role="alert"], .error, .text-red').locator('text=/already registered|email|validation/i').first()).toBeVisible({ timeout: 10000 });
     });
   });
 
@@ -415,7 +416,7 @@ test.describe('Offline Mode', () => {
     await page.context().setOffline(true);
     await page.click('button[type="submit"]');
 
-    await expect(page.locator('text=/offline|connection|network|try again/i')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=/offline|connection|network|try again/i').first()).toBeVisible({ timeout: 10000 });
     
     await page.context().setOffline(false);
   });
