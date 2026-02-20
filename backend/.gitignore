@@ -58,3 +58,6 @@ temp/
 
 # Local dev runtime artifacts
 .runtime/
+
+# Symlink directories (accidentally created)
+CalorieTracker_BackEnd
