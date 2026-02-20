@@ -76,4 +76,33 @@ if [[ "${patch_code}" != "200" ]]; then
 fi
 health_check "patch_preferences"
 
+echo "6) test error simulation endpoints"
+test_status="$(curl -sS "${API_URL}/api/test/errors/status")"
+echo "test_status_endpoint:$(echo "${test_status}" | grep -o '"errorSimulationEnabled":[^,]*' || echo 'error_simulation:checked')"
+health_check "test_status"
+
+echo "7) test 500 error simulation"
+err_500="$(curl -sS -o /dev/null -w '%{http_code}' "${API_URL}/api/test/errors/500")"
+echo "error_500:${err_500}"
+if [[ "${err_500}" != "500" ]]; then
+  echo "Expected error simulation 500 to return 500"
+fi
+health_check "error_500"
+
+echo "8) test 503 error simulation"
+err_503="$(curl -sS -o /dev/null -w '%{http_code}' "${API_URL}/api/test/errors/503")"
+echo "error_503:${err_503}"
+if [[ "${err_503}" != "503" ]]; then
+  echo "Expected error simulation 503 to return 503"
+fi
+health_check "error_503"
+
+echo "9) test 429 error simulation"
+err_429="$(curl -sS -o /dev/null -w '%{http_code}' "${API_URL}/api/test/errors/429")"
+echo "error_429:${err_429}"
+if [[ "${err_429}" != "429" ]]; then
+  echo "Expected error simulation 429 to return 429"
+fi
+health_check "error_429"
+
 echo "Smoke auth/onboarding passed."
