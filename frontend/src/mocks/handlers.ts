@@ -400,4 +400,96 @@ export const handlers = [
       { status: 400 }
     );
   }),
+
+  http.get('/api/test/errors/network-failure', () => {
+    return new Response(null, {
+      status: 0,
+      statusText: 'Failed to fetch',
+    });
+  }),
+
+  http.get('/api/test/errors/connection-refused', () => {
+    return new Response(null, {
+      status: 0,
+      statusText: 'Connection refused',
+    });
+  }),
+
+  http.get('/api/test/errors/backend-unavailable', () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'backend_unavailable',
+          message: 'Unable to connect to the server. The service may be temporarily unavailable.',
+          retryable: true,
+        },
+      },
+      { status: 503 }
+    );
+  }),
+
+  http.post('/api/test/errors/network-failure', () => {
+    return new Response(null, {
+      status: 0,
+      statusText: 'Failed to fetch',
+    });
+  }),
+
+  http.post('/api/test/errors/429', () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'rate_limited',
+          message: 'Too many requests. Please wait before trying again.',
+          retryAfter: 60,
+        },
+      },
+      { status: 429, headers: { 'Retry-After': '60' } }
+    );
+  }),
+
+  http.post('/api/test/errors/503', () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'service_unavailable',
+          message: 'Service temporarily unavailable. Please try again later.',
+          retryable: true,
+          retryAfter: 30,
+        },
+      },
+      { status: 503, headers: { 'Retry-After': '30' } }
+    );
+  }),
+
+  http.get('/api/test/errors/gateway-timeout', () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'gateway_timeout',
+          message: 'The server took too long to respond. Please try again.',
+          retryable: true,
+        },
+      },
+      { status: 504 }
+    );
+  }),
+
+  http.get('/api/test/errors/bad-gateway', () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'bad_gateway',
+          message: 'Unable to reach the backend server. Please check your connection.',
+          retryable: true,
+        },
+      },
+      { status: 502 }
+    );
+  }),
 ];

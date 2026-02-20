@@ -354,4 +354,243 @@ export const handlers = [
     mockGoals.delete(userId);
     return HttpResponse.json({ success: true });
   }),
+
+  // Error simulation endpoints for E2E testing
+  http.get(`${API_BASE_URL}/api/test/errors/status`, () => {
+    return HttpResponse.json({
+      success: true,
+      data: {
+        testModeEnabled: true,
+        errorSimulationEnabled: true,
+        environment: 'test',
+        availableEndpoints: [
+          'GET /api/test/errors/500',
+          'POST /api/test/errors/500',
+          'GET /api/test/errors/timeout',
+          'GET /api/test/errors/slow',
+          'GET /api/test/errors/network-failure',
+          'GET /api/test/errors/connection-refused',
+          'GET /api/test/errors/backend-unavailable',
+          'GET /api/test/errors/503',
+          'GET /api/test/errors/429',
+          'GET /api/test/errors/401',
+          'GET /api/test/errors/403',
+          'GET /api/test/errors/400',
+          'GET /api/test/errors/gateway-timeout',
+          'GET /api/test/errors/bad-gateway',
+        ],
+      },
+    });
+  }),
+
+  http.get(`${API_BASE_URL}/api/test/errors/500`, () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'internal_error',
+          message: 'Internal server error - simulated for testing',
+          requestId: `test-${Date.now()}`,
+        },
+      },
+      { status: 500 }
+    );
+  }),
+
+  http.post(`${API_BASE_URL}/api/test/errors/500`, () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'internal_error',
+          message: 'Internal server error - simulated for testing',
+          requestId: `test-${Date.now()}`,
+        },
+      },
+      { status: 500 }
+    );
+  }),
+
+  http.get(`${API_BASE_URL}/api/test/errors/timeout`, async ({ request }) => {
+    const url = new URL(request.url);
+    const delayMs = parseInt(url.searchParams.get('delay') || '30000');
+    await delay(delayMs);
+    return HttpResponse.json({
+      success: true,
+      data: { message: `Response after ${delayMs}ms delay` },
+    });
+  }),
+
+  http.get(`${API_BASE_URL}/api/test/errors/slow`, async ({ request }) => {
+    const url = new URL(request.url);
+    const delayMs = parseInt(url.searchParams.get('delay') || '5000');
+    await delay(delayMs);
+    return HttpResponse.json({
+      success: true,
+      data: { message: `Slow response after ${delayMs}ms` },
+    });
+  }),
+
+  http.get(`${API_BASE_URL}/api/test/errors/503`, () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'service_unavailable',
+          message: 'Service temporarily unavailable - simulated for testing',
+          retryAfter: 60,
+        },
+      },
+      { status: 503 }
+    );
+  }),
+
+  http.post(`${API_BASE_URL}/api/test/errors/503`, () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'service_unavailable',
+          message: 'Service temporarily unavailable. Please try again later.',
+          retryable: true,
+          retryAfter: 30,
+        },
+      },
+      { status: 503, headers: { 'Retry-After': '30' } }
+    );
+  }),
+
+  http.get(`${API_BASE_URL}/api/test/errors/429`, () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'rate_limited',
+          message: 'Too many requests - simulated for testing',
+          retryAfter: 30,
+        },
+      },
+      { status: 429 }
+    );
+  }),
+
+  http.post(`${API_BASE_URL}/api/test/errors/429`, () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'rate_limited',
+          message: 'Too many requests. Please wait before trying again.',
+          retryAfter: 60,
+        },
+      },
+      { status: 429, headers: { 'Retry-After': '60' } }
+    );
+  }),
+
+  http.get(`${API_BASE_URL}/api/test/errors/401`, () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'unauthorized',
+          message: 'Authentication required - simulated for testing',
+        },
+      },
+      { status: 401 }
+    );
+  }),
+
+  http.get(`${API_BASE_URL}/api/test/errors/403`, () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'forbidden',
+          message: 'Access denied - simulated for testing',
+        },
+      },
+      { status: 403 }
+    );
+  }),
+
+  http.get(`${API_BASE_URL}/api/test/errors/400`, () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'validation_error',
+          message: 'Validation failed - simulated for testing',
+          details: [
+            { field: 'email', message: 'Invalid email format' },
+            { field: 'password', message: 'Password too short' },
+          ],
+        },
+      },
+      { status: 400 }
+    );
+  }),
+
+  http.get(`${API_BASE_URL}/api/test/errors/network-failure`, () => {
+    return new Response(null, {
+      status: 0,
+      statusText: 'Failed to fetch',
+    });
+  }),
+
+  http.post(`${API_BASE_URL}/api/test/errors/network-failure`, () => {
+    return new Response(null, {
+      status: 0,
+      statusText: 'Failed to fetch',
+    });
+  }),
+
+  http.get(`${API_BASE_URL}/api/test/errors/connection-refused`, () => {
+    return new Response(null, {
+      status: 0,
+      statusText: 'Connection refused',
+    });
+  }),
+
+  http.get(`${API_BASE_URL}/api/test/errors/backend-unavailable`, () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'backend_unavailable',
+          message: 'Unable to connect to the server. The service may be temporarily unavailable.',
+          retryable: true,
+        },
+      },
+      { status: 503 }
+    );
+  }),
+
+  http.get(`${API_BASE_URL}/api/test/errors/gateway-timeout`, () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'gateway_timeout',
+          message: 'The server took too long to respond. Please try again.',
+          retryable: true,
+        },
+      },
+      { status: 504 }
+    );
+  }),
+
+  http.get(`${API_BASE_URL}/api/test/errors/bad-gateway`, () => {
+    return HttpResponse.json(
+      {
+        success: false,
+        error: {
+          code: 'bad_gateway',
+          message: 'Unable to reach the backend server. Please check your connection.',
+          retryable: true,
+        },
+      },
+      { status: 502 }
+    );
+  }),
 ];
