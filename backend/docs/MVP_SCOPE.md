@@ -361,13 +361,19 @@ The MVP is considered COMPLETE when:
 | Question | Status | Decision |
 |---------|--------|----------|
 | OAuth inclusion in MVP or deferred? | ✅ DECIDED | DEFERRED to Later |
-| Exact grace period and retention windows per data class? | ⚠️ PENDING | Needs decision |
-| Rectification: user self-service or support workflow in MVP? | ⚠️ PENDING | Needs decision |
-| Required monitoring level for beta launch? | ⚠️ PENDING | Needs decision |
+| Exact grace period and retention windows per data class? | ✅ DECIDED | Policy defined (see OPEN_QUESTIONS_DECISIONS.md) |
+| Rectification: user self-service or support workflow in MVP? | ✅ DECIDED | User self-service (see OPEN_QUESTIONS_DECISIONS.md) |
+| Required monitoring level for beta launch? | ✅ DECIDED | Basic monitoring (see OPEN_QUESTIONS_DECISIONS.md) |
 
 ### Scope Freeze Decision
 **Date:** 2026-02-21
 **Decision:** MVP scope is now LOCKED
+- All open questions resolved
+- See `backend/docs/OPEN_QUESTIONS_DECISIONS.md` for full details:
+  - Grace periods: 30 days (user data), 7 days (logs), no grace (audit)
+  - Retention: 6 months (soft-deleted), 3 years (audit records)
+  - Rectification: User self-service in MVP (no admin approval)
+  - Monitoring: Basic level for beta (uptime, API health, GDPR jobs)
 - No new features can be added to MVP without explicit approval
 - "Later" features must be documented here with rationale
 - All future sprints must map to MVP scope unless explicitly tagged "Later"
