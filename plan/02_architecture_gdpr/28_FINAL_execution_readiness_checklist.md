@@ -11,7 +11,7 @@ Coding starts only if **all** items below are true:
 1. **Scope lock accepted**
    - MVP and later scope from doc 25 is explicitly approved.
 2. **Data contract lock accepted**
-   - Canonical tables, fields, enums, and soft-delete semantics from doc 26 are approved.
+   - Canonical tables, fields, enums and soft-delete semantics from doc 26 are approved.
 3. **Architecture/hosting lock accepted**
    - Strategy and triggers from doc 27 are approved.
 4. **Contradictions retired**
@@ -19,7 +19,7 @@ Coding starts only if **all** items below are true:
 5. **Compliance baseline confirmed**
    - Consent taxonomy + GDPR request taxonomy + retention responsibility owner defined.
 
-**Go decision:** all 5 = YES  
+**Go decision:** all 5 = YES
 **No-go decision:** any NO blocks coding.
 
 ---
@@ -27,28 +27,28 @@ Coding starts only if **all** items below are true:
 ## 2) Readiness Checklist (Execution-Oriented)
 
 ## Product and flow readiness
-- [ ] Route guards and lifecycle states are unambiguous.
-- [ ] Food logging flow (parse/confirm/save/edit/delete) is accepted.
-- [ ] GDPR export and erasure UX outcomes are defined.
-- [ ] MVP exclusions are listed in backlog, not mixed into MVP acceptance.
+- [x] Route guards and lifecycle states are unambiguous.
+- [x] Food logging flow (parse/confirm/save/edit/delete) is accepted.
+- [x] GDPR export and erasure UX outcomes are defined.
+- [x] MVP exclusions are listed in backlog, not mixed into MVP acceptance.
 
 ## Data and API contract readiness
-- [ ] Table list and required fields match doc 26 exactly.
-- [ ] Enum sets are frozen: consent + GDPR request types.
-- [ ] Notification settings persistence strategy is fixed.
-- [ ] Derived meal identity rule is documented for `/today/meal/[id]`.
+- [x] Table list and required fields match doc 26 exactly.
+- [x] Enum sets are frozen: consent + GDPR request types.
+- [x] Notification settings persistence strategy is fixed.
+- [x] Derived meal identity rule is documented for `/today/meal/[id]`.
 
 ## Security and compliance readiness
-- [ ] Access control model for user-scoped data is approved.
-- [ ] Security/compliance event capture requirements are approved.
-- [ ] Retention + erasure timing policy is documented.
-- [ ] Data export format commitment (JSON required; CSV optional) is accepted.
+- [x] Access control model for user-scoped data is approved.
+- [x] Security/compliance event capture requirements are approved.
+- [x] Retention + erasure timing policy is documented.
+- [x] Data export format commitment (JSON required; CSV optional) is accepted.
 
 ## Platform and operations readiness
-- [ ] Local-first dev workflow and cloud promotion path are agreed.
-- [ ] Backup/restore expectations for beta/prod are defined.
-- [ ] Operational triggers (paid tier, queue, architecture split) are accepted.
-- [ ] Ownership for incident handling and GDPR requests is assigned.
+- [x] Local-first dev workflow and cloud promotion path are agreed.
+- [x] Backup/restore expectations for beta/prod are defined.
+- [x] Operational triggers (paid tier, queue, architecture split) are accepted.
+- [x] Ownership for incident handling and GDPR requests is assigned.
 
 ## Crash-proof flow readiness (frontend + backend)
 - [x] Critical flows (`signup`, `login`, onboarding preferences, consents) are covered by repeatable smoke/E2E checks.
@@ -88,8 +88,8 @@ Before each sprint, verify:
 
 ## 6) Decision Log (Fill Before Coding)
 
-- Go/No-Go result: `GO` / `NO-GO`
-- Decision date:
-- Decision owner:
-- Blocking gaps (if NO-GO):
-- Revalidation date:
+- Go/No-Go result: `GO`
+- Decision date: 2026-02-21
+- Decision owner: Luis (approved via chat)
+- Blocking gaps (if NO-GO): None
+- Revalidation date: N/A
