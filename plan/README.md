@@ -7,6 +7,18 @@ It contains non-repo project knowledge, research artifacts, and decision documen
 
 ## Recent Activity
 
+### 2026-02-21 — Implementation Tasks (3 Tasks)
+- **Task 1:** Automated cleanup of `.runtime` state ✅
+- **Task 2:** Error-state mocks for login/onboarding flows ❌ (reverted)
+- **Task 3:** Update local run scripts README ✅
+- **Details:** `plan/02_architecture_gdpr/EXECUTION_LOG_2026-02-21_implementation_tasks.md`
+- **Commits:**
+  - `32c82b6` - feat(backend): add cleanup-runtime script
+  - `6a815d7` - feat(frontend): add cleanup:runtime npm script
+  - `230faca` - feat(frontend): add error-state mocks (initial)
+  - `0f1d8bd` - docs(backend): add comprehensive dev-scripts README
+  - `610cbff` - revert(frontend): remove broken error-state tests
+
 ### 2026-02-21 — Data Model Audit & Execution Readiness
 - **Task:** Audit data model and verify frozen enums
 - **Backend:** No code changes (audit only)
