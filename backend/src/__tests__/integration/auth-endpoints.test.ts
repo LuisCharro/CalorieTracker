@@ -11,6 +11,7 @@ import { cleanupTestDatabase, getTestPool } from '../setup.js';
 describe('Auth Endpoints Integration Tests', () => {
   const testEmail = `test-${uuidv4()}@example.com`;
   let userId: string;
+  let testUserIds: string[] = [];
 
   it('should register a new user', async () => {
     const response = await request(app)
@@ -32,6 +33,7 @@ describe('Auth Endpoints Integration Tests', () => {
     expect(response.body.data).toHaveProperty('token');
 
     userId = response.body.data.id;
+    testUserIds.push(userId); // Track for cleanup
   });
 
   it('should not register duplicate email', async () => {
@@ -131,6 +133,25 @@ describe('Auth Endpoints Integration Tests', () => {
       .expect(404);
 
     expect(getResponse.body.error).toHaveProperty('code', 'not_found');
+  });
+
+  // Cleanup specific test data to avoid parallel test pollution
+  afterEach(async () => {
+    const pool = require('../../db/pool').getPool();
+    if (testUserIds.length > 0) {
+      for (const id of testUserIds) {
+        try {
+          await pool.query('DELETE FROM users WHERE id = $1', [id]);
+          await pool.query('DELETE FROM food_logs WHERE user_id = $1', [id]);
+          await pool.query('DELETE FROM goals WHERE user_id = $1', [id]);
+          await pool.query('DELETE FROM notification_settings WHERE user_id = $1', [id]);
+          await pool.query('DELETE FROM consent_history WHERE user_id = $1', [id]);
+        } catch (error) {
+          // Ignore cleanup errors
+        }
+      }
+      testUserIds = [];
+    }
   });
 });
 
