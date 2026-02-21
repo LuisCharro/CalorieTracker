@@ -220,9 +220,9 @@ All error responses follow this structure:
 ## Next Checkpoints
 
 ### Immediate
-- Decide on open questions (OAuth, retention, rectification, monitoring)
-- Fix backend flaky test (test isolation issue)
-- Create MVP vs Later scope document
+- ✅ Decide on open questions (OAuth, retention, rectification, monitoring)
+- ✅ Fix backend flaky test (test isolation issue)
+- ✅ Create MVP vs Later scope document
 
 ### Short-term
 - Implement properly integrated error-state mocks for login/onboarding
