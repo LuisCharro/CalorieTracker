@@ -19,18 +19,19 @@ Verify that a logged-in user can successfully log a meal with multiple food item
 DELETE FROM users WHERE email = 'e2e-test@calorietracker.test';
 
 -- Insert test user
-INSERT INTO users (id, email, password_hash, full_name, created_at, updated_at)
+INSERT INTO users (id, email, password_hash, display_name, preferences, onboarding_complete, created_at)
 VALUES (
   '550e8400-e29b-41d4-a716-446655440000',
   'e2e-test@calorietracker.test',
   '$2b$12$EixZaYVK1fsbw1ZfbX3Oe$JYqWqNwXwOq7qL5G5j5j5j5j5j5j5j5j5j5j5j', -- hashed 'test123'
   'E2E Test User',
-  NOW(),
+  '{"daily_calorie_goal": 2000}'::jsonb,
+  TRUE,
   NOW()
 );
 
 -- Verify user created
-SELECT id, email, full_name FROM users WHERE email = 'e2e-test@calorietracker.test';
+SELECT id, email, display_name FROM users WHERE email = 'e2e-test@calorietracker.test';
 ```
 
 ## Steps
@@ -43,7 +44,8 @@ SELECT id, email, full_name FROM users WHERE email = 'e2e-test@calorietracker.te
 1. Enter email: `e2e-test@calorietracker.test`
 2. Enter password: `test123`
 3. Click "Sign In" button
-4. **Expected:** Redirected to `/today` page, no error message
+4. **Expected:** Redirected to `/today` page (or onboarding flow if user is new), no error message
+5. If onboarding appears, complete all steps (goals, preferences, required consents, optional consents skip/continue) until dashboard (`/today`) is shown.
 
 ### Step 3: Navigate to Log Page
 1. Click "Log" button in navigation (bottom)
@@ -59,7 +61,7 @@ SELECT id, email, full_name FROM users WHERE email = 'e2e-test@calorietracker.te
    - **Expected:** Nutrition shows: `260 cal`, `5.4g protein`, `56g carbs`, `0.6g fat`
 4. Click "+ Add Another Item" button
 5. In third food item row:
-   - Enter: `1 apple`
+   - Enter: `100g apple`
    - **Expected:** Nutrition shows: `52 cal`, `0.3g protein`, `14g carbs`, `0.2g fat`
 
 ### Step 5: Configure Meal
