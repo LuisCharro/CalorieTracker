@@ -42,19 +42,22 @@ export default function HistoryPage() {
   };
 
   const filteredLogs = logs.filter(log => {
-    const matchesSearch = searchTerm === '' || 
+    if (!log.loggedAt) return false; // Skip logs without loggedAt
+
+    const matchesSearch = searchTerm === '' ||
       log.foodName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (log.brandName && log.brandName.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesDate = selectedDate === '' || 
+
+    const matchesDate = selectedDate === '' ||
       log.loggedAt.startsWith(selectedDate);
-    
+
     return matchesSearch && matchesDate;
   });
 
   const groupLogsByDate = (logs: FoodLog[]) => {
     const groups: Record<string, FoodLog[]> = {};
     logs.forEach(log => {
+      if (!log.loggedAt) return; // Skip logs without loggedAt
       const date = log.loggedAt.split('T')[0];
       if (!groups[date]) {
         groups[date] = [];
