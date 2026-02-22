@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '../core/auth';
@@ -8,12 +8,16 @@ import { OfflineQueueProvider } from '../core/contexts/OfflineQueueContext';
 
 const inter = Inter({ subsets: ['latin'] });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   title: 'CalorieTracker - Track Your Nutrition',
   description: 'Simple, privacy-focused calorie tracking for a healthier lifestyle.',
   keywords: ['calorie tracker', 'nutrition', 'diet', 'health', 'fitness'],
   authors: [{ name: 'CalorieTracker' }],
-  viewport: 'width=device-width, initial-scale=1',
   themeColor: '#22c55e',
 };
 

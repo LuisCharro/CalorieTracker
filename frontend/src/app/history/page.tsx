@@ -20,6 +20,11 @@ export default function HistoryPage() {
     loadLogs();
   }, [user?.id]);
 
+  // Prevent browser from auto-filling date on mount
+  useEffect(() => {
+    setSelectedDate('');
+  }, []);
+
   const loadLogs = async () => {
     if (!user?.id) return;
 
