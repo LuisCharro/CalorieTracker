@@ -257,14 +257,14 @@ export default function TodayPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="text-sm font-medium text-neutral-900 truncate">
-                                {log.foodName}
+                                {log.foodName || (log as any).food_name || 'Unnamed food'}
                               </div>
                               <div className="flex items-center gap-2 text-xs text-neutral-500">
                                 <span>{log.quantity} {log.unit}</span>
-                                {log.brandName && (
+                                {(log.brandName || (log as any).brand_name) && (
                                   <>
                                     <span>•</span>
-                                    <span className="truncate">{log.brandName}</span>
+                                    <span className="truncate">{log.brandName || (log as any).brand_name}</span>
                                   </>
                                 )}
                               </div>
