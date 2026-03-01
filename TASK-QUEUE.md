@@ -12,7 +12,7 @@
 - **Files:** backend/Models/, backend/Data/
 - **Commands:** dotnet ef migrations add ProfileFields
 - **Verification:** API returns new profile fields
-- **Status:** PENDING
+- **Status:** COMPLETED
 
 ### Task 1.2: Create Unit Conversion Utilities
 - **Scope:** Backend service
