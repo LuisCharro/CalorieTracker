@@ -100,3 +100,28 @@
   - DELETE /api/food-cache/:id - Delete entry
 - Notes: Auto-increments use_count when adding existing foods (upsert logic). Foods sorted by usage count for "recent/recently used" feature.
 - Next task: Task 2.3 - Add Recent Foods to Meal Entry
+
+- Time: 2026-03-02 00:24 CET
+- Task: Task 3.1 - Create Weight Logs Table + UI
+- Result: completed
+- Files changed: 
+  - backend/src/db/migrations/0007_add_weight_logs.sql
+  - backend/src/api/routers/weight-logs.router.ts
+  - backend/src/api/validation/schemas.ts
+  - backend/src/api/server.ts
+  - frontend/src/core/api/services/weight-logs.service.ts
+  - frontend/src/core/api/services/index.ts
+  - frontend/src/app/settings/weight/page.tsx
+- Commit: 08df547
+- Build: npm run build ✓
+- Migration: npm run migrate ✓
+- Database: weight_logs table created successfully
+- Endpoints implemented:
+  - GET /api/weight-logs - List user's weight logs
+  - GET /api/weight-logs/latest - Get most recent weight
+  - GET /api/weight-logs/:id - Get single entry
+  - POST /api/weight-logs - Create new entry
+  - PATCH /api/weight-logs/:id - Update entry
+  - DELETE /api/weight-logs/:id - Delete entry
+- Frontend: Settings > Weight page with form and history
+- Next task: Task 3.2 - Create Exercises Table + UI

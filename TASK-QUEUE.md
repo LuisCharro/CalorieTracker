@@ -79,6 +79,7 @@
 ## Phase 3: Placeholder Tables (Priority: LOW)
 
 ### Task 3.1: Create Weight Logs Table + UI
+- **Status:** COMPLETED (08df547)
 - **Scope:** Backend + Frontend
 - **Files:** backend/Migrations/, frontend/src/app/
 - **Commands:** npm run build && npm run build
