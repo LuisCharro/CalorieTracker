@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button, Card, CardHeader, CardBody, Alert } from '../../shared/components';
 import { Layout, Header, Navigation } from '../../shared/layout';
 import { useAuth } from '../../core/auth';
 import { logsService, goalsService } from '../../core/api/services';
 import { RouteGuard } from '../../core/auth/routeGuard';
 import type { FoodLog, Goal } from '../../core/contracts/types';
+import type { Nutrition } from '../../core/contracts/enums';
 import { MealType, GoalType } from '../../core/contracts/enums';
 import { useOfflineQueue } from '../../core/contexts/OfflineQueueContext';
 import { OfflineQueueIndicator } from '../../components/offline/OfflineQueueIndicator';
@@ -19,7 +21,19 @@ interface MealGroup {
   totalProtein: number;
 }
 
+interface RecentFood {
+  id: string;
+  food_name: string;
+  brand_name: string | null;
+  default_quantity: number;
+  default_unit: string;
+  nutrition: Nutrition | null;
+  use_count: number;
+  last_used_at: string;
+}
+
 export default function TodayPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const { isOnline, isSyncing, hasPendingOperations, sync } = useOfflineQueue();
   const [todayLogs, setTodayLogs] = useState<Record<MealType, MealGroup>>({
@@ -35,6 +49,8 @@ export default function TodayPage() {
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [recentFoods, setRecentFoods] = useState<RecentFood[]>([]);
+  const [isLoadingRecent, setIsLoadingRecent] = useState(false);
 
   const loadTodayData = useCallback(async () => {
     if (!user?.id) return;
@@ -76,9 +92,37 @@ export default function TodayPage() {
     }
   }, [user?.id, hasPendingOperations, isOnline, sync]);
 
+  // Fetch recent foods
+  const fetchRecentFoods = useCallback(async () => {
+    if (!user?.id) return;
+    
+    setIsLoadingRecent(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/food-cache/recent?userId=${user.id}&limit=10`
+      );
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        const parsedFoods = data.data.map((food: RecentFood) => ({
+          ...food,
+          nutrition: typeof food.nutrition === 'string' 
+            ? JSON.parse(food.nutrition) 
+            : food.nutrition,
+        }));
+        setRecentFoods(parsedFoods);
+      }
+    } catch (err) {
+      console.error('Failed to fetch recent foods:', err);
+    } finally {
+      setIsLoadingRecent(false);
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     loadTodayData();
-  }, [loadTodayData]);
+    fetchRecentFoods();
+  }, [loadTodayData, fetchRecentFoods]);
 
   const handleDeleteItem = async (logId: string) => {
     setDeletingId(logId);
@@ -92,6 +136,11 @@ export default function TodayPage() {
     } finally {
       setDeletingId(null);
     }
+  };
+
+  const handleAddRecentFood = (mealType: MealType) => {
+    // Navigate to log page with the meal type pre-selected
+    router.push(`/log?mealType=${mealType}`);
   };
 
   const dailyGoal = goals.find(g => g.goalType === 'daily_calories');
@@ -234,10 +283,43 @@ export default function TodayPage() {
                 </CardHeader>
                 <CardBody>
                   {meal.items.length === 0 ? (
-                    <div className="text-center py-6">
+                    <div className="text-center py-4">
                       <p className="text-sm text-neutral-500 mb-3">
                         No {mealType} logged yet
                       </p>
+                      
+                      {/* Recent Foods Section */}
+                      {recentFoods.length > 0 && !isLoadingRecent && (
+                        <div className="mb-4">
+                          <p className="text-xs text-neutral-500 mb-2">Quick add from recent:</p>
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {recentFoods.slice(0, 5).map((food) => (
+                              <button
+                                key={food.id}
+                                onClick={() => handleAddRecentFood(mealType)}
+                                className="px-3 py-2 bg-neutral-100 hover:bg-primary-50 border border-neutral-200 hover:border-primary-300 rounded-lg text-left transition-colors"
+                              >
+                                <div className="text-sm font-medium text-neutral-900">
+                                  {food.food_name}
+                                </div>
+                                {food.brand_name && (
+                                  <div className="text-xs text-neutral-500 truncate max-w-[100px]">
+                                    {food.brand_name}
+                                  </div>
+                                )}
+                                <div className="text-xs text-primary-600 mt-1">
+                                  {food.nutrition?.calories || '—'} cal
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {isLoadingRecent && (
+                        <div className="text-xs text-neutral-400 mb-3">Loading recent foods...</div>
+                      )}
+
                       <Link href="/log">
                         <Button size="sm" variant="outline">
                           + Add Food
