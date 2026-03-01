@@ -95,11 +95,11 @@
 - **Status:** PENDING
 
 ### Task 3.3: Create Water Logs Table + UI
+- **Status:** COMPLETED (1e04b66)
 - **Scope:** Backend + Frontend
 - **Files:** backend/Migrations/, frontend/src/app/
 - **Commands:** npm run build && npm run build
 - **Verification:** Water logging works
-- **Status:** PENDING
 
 ---
 
