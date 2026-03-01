@@ -1,7 +1,7 @@
 # CalorieTracker Development Plan
 **Branch:** development  
 **Created:** 2026-03-01  
-**Status:** 🚧 PLANNING
+**Updated:** 2026-03-01 (added features from research)
 
 ---
 
@@ -21,47 +21,71 @@ The current CalorieTracker feels like a **toy app** and has critical gaps:
 2. **No recent foods** - user has to search every time
 3. **Poor UX** - not like professional apps
 
-### General Issues
-1. Needs professional polish
-2. Missing key features from research
-
 ---
 
 ## Reference: Amy App Onboarding (Research)
 
 From `03_video_research/onboarding_reference/`:
 
-### Correct Order:
+### Complete Onboarding Flow (from research):
 1. Welcome (Get Started)
-2. Apple Health sync (optional)
+2. Apple Health sync (optional) - **FUTURE**
 3. **Birthday** ← We miss this
 4. **Gender** ← We miss this
 5. **Height** ← We miss this
-6. **Weight** (current + goal) ← We miss this
+6. **Weight** (current + goal + optional target date) ← We miss this
 7. **Activity level** ← We miss this
-8. Special considerations (diet)
-9. Calorie uncertainty preference
-10. Location permission
-11. Notification permission
-12. Goals summary
-13. Account creation
-
-### Key Insight:
-**Goals come AFTER profile data** - you can't calculate goals without knowing:
-- Age (from birthday)
-- Gender
-- Height
-- Current weight
-- Activity level
+8. Special considerations (diet) ← PARTIAL
+9. Calorie uncertainty preference ← **PLACEHOLDER**
+10. Location permission ← **PLACEHOLDER**
+11. Notification permission ← **PLACEHOLDER**
+12. Goals summary (with trajectory) ← **PLACEHOLDER**
+13. Widget setup ← **FUTURE**
+14. Paywall ← **FUTURE**
+15. Account creation ← We have this
 
 ---
 
-## Proposed Onboarding Flow
+## All Features from Research (Categorized)
+
+### 🔴 Must Have Now (Onboarding Rebuild)
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Birthday | ❌ MISSING | For age calculation |
+| Gender | ❌ MISSING | For BMR calculation |
+| Height | ❌ MISSING | For BMR calculation |
+| Current Weight | ❌ MISSING | For BMR + goal |
+| Goal Weight | ❌ MISSING | For progress tracking |
+| Target Date | ⚠️ PARTIAL | Optional, existing |
+| Activity Level | ❌ MISSING | For TDEE calculation |
+| Unit System | ❌ MISSING | kg/lbs, cm/ft |
+
+### 🟡 Placeholders (Add UI, Store Data)
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Calorie Uncertainty | ❌ MISSING | Store preference, show in UI |
+| Weight History | ❌ MISSING | Track weight over time |
+| Calories Burned | ❌ MISSING | From activity + manual entry |
+| Water Intake | ❌ MISSING | Common feature |
+| Exercise/Workouts | ❌ MISSING | Log workouts |
+| Macro Goals | ⚠️ PARTIAL | Protein, carbs, fat targets |
+
+###Nice 🔵 Future ( to Have)
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Apple Health Sync | 🔵 FUTURE | Integration |
+| Widget Setup | 🔵 FUTURE | Home screen widget |
+| Paywall | 🔵 FUTURE | Monetization |
+| Progress Photos | 🔵 FUTURE | Body progress |
+| Meal Reminders | 🔵 FUTURE | Push notifications |
+
+---
+
+## Proposed Onboarding Flow (8 Steps)
 
 ### Step 1: Welcome
 - App name + value prop
-- "Get Started" / "Already have account? Sign in"
-- Optional: Apple Health sync (future)
+- "Get Started" / "Already have account?"
 
 ### Step 2: Profile - Birthday
 - "What's your birthday?"
@@ -69,132 +93,131 @@ From `03_video_research/onboarding_reference/`:
 - Privacy note
 
 ### Step 3: Profile - Gender
-- "What's your gender?" 
 - Options: Male, Female, Other, Prefer not to say
-- Needed for BMR calculation
 
 ### Step 4: Profile - Height
-- "What's your height?"
 - Unit toggle: cm / ft+in
 - Large, easy input
 
-### Step 5: Profile - Weight (Current + Goal)
-- "What's your weight?"
+### Step 5: Profile - Weight
 - Current weight input
-- Goal weight input
+- Goal weight input (optional)
 - Target date (optional)
 - Unit toggle: kg / lbs
 
-### Step 6: Profile - Activity Level
-- "What's your activity level?"
+### Step 6: Activity Level
 - Sedentary, Lightly active, Moderately active, Very active, Extra active
-- Impacts TDEE calculation
 
-### Step 7: Goals - Calorie Target
-- Auto-calculate from profile data (TDEE)
+### Step 7: Goals
+- Auto-calculate TDEE from profile
+- Show daily calorie target
 - Allow manual adjustment
-- Show calculated vs manual
+- Show macro targets (protein, carbs, fat)
 
 ### Step 8: Preferences
 - Diet preferences (High protein, Low carb, etc.)
-- Calorie uncertainty slider
-
-### Step 9: Complete
-- Summary of goals
-- Welcome to app
+- Calorie uncertainty slider (store only for now)
 
 ---
 
-## Data Model Changes Needed
+## Data Model Changes
 
-### User Profile (new table/fields)
-```
-- birthday: Date
-- gender: Enum (male, female, other, prefer_not_to_say)
-- height_cm: Decimal
-- height_ft: Integer (feet)
-- height_in: Integer (inches)
-- weight_kg: Decimal
-- weight_lbs: Decimal  
-- goal_weight_kg: Decimal
-- goal_weight_lbs: Decimal
-- target_date: Date (optional)
-- activity_level: Enum (sedentary, light, moderate, very_active, extra_active)
-- unit_system: Enum (metric, imperial)
-- diet_preferences: JSON (array of preferences)
-- calorie_bias: Enum (under, over, accurate)
+### User Profile Fields (new)
+```typescript
+{
+  // Identity
+  birthday: Date,
+  gender: 'male' | 'female' | 'other' | 'prefer_not_to_say',
+  
+  // Body metrics
+  height_cm: number,
+  weight_kg: number,
+  goal_weight_kg: number | null,
+  target_date: Date | null,
+  
+  // Preferences
+  unit_system: 'metric' | 'imperial',
+  activity_level: 'sedentary' | 'light' | 'moderate' | 'very_active' | 'extra_active',
+  diet_preferences: string[],
+  calorie_bias: 'under' | 'over' | 'accurate' | null,
+}
 ```
 
-### Food Cache (new table)
-```
-- id: UUID
-- user_id: UUID
-- food_name: String
-- brand: String (optional)
-- calories_per_100g: Decimal
-- protein_per_100g: Decimal
-- carbs_per_100g: Decimal
-- fat_per_100g: Decimal
-- serving_size_grams: Decimal
-- meal_type: Enum (breakfast, lunch, dinner, snack)
-- last_used_at: DateTime
-- use_count: Integer
+### New Tables (for placeholders)
+```sql
+-- Weight history tracking
+CREATE TABLE weight_logs (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  weight_kg DECIMAL(5,1),
+  logged_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Exercise/workouts (placeholder)
+CREATE TABLE exercises (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  name VARCHAR(255),
+  calories_burned INTEGER,
+  duration_minutes INTEGER,
+  logged_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Water intake (placeholder)
+CREATE TABLE water_logs (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  amount_ml INTEGER,
+  logged_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Food cache (for recent foods)
+CREATE TABLE food_cache (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  food_name VARCHAR(255),
+  brand VARCHAR(255),
+  calories_per_100g DECIMAL(6,1),
+  protein_per_100g DECIMAL(5,1),
+  carbs_per_100g DECIMAL(5,1),
+  fat_per_100g DECIMAL(5,1),
+  serving_size_grams DECIMAL(5,1),
+  meal_type VARCHAR(20),
+  last_used_at TIMESTAMP DEFAULT NOW(),
+  use_count INTEGER DEFAULT 1
+);
 ```
 
 ---
 
-## Features to Add
+## Implementation Priority
 
-### Priority 1: Complete Onboarding (Must Fix)
-- [ ] Rebuild onboarding flow (8-9 steps)
-- [ ] Add profile data collection
-- [ ] Add unit system preference
-- [ ] Calculate TDEE from profile
-- [ ] Auto-suggest calorie goal
+### Phase 1: Onboarding Rebuild (Week 1)
+- [ ] Add profile fields to user model
+- [ ] Rebuild onboarding (8 steps)
+- [ ] Add unit conversion utilities
+- [ ] Add TDEE/BMR calculation
 
-### Priority 2: Food Cache (UX Improvement)
+### Phase 2: Food Cache (Week 2)
 - [ ] Create food_cache table
 - [ ] Track foods per meal type
-- [ ] Show "Recent foods" for each meal
-- [ ] "Frequently used" sorting
+- [ ] Show "Recent foods" in meal entry
 
-### Priority 3: Professional Polish
-- [ ] Better empty states
-- [ ] Progress indicators
-- [ ] Better error handling
+### Phase 3: Placeholders (Week 3)
+- [ ] Add weight_logs table + UI
+- [ ] Add exercises table + UI
+- [ ] Add water_logs table + UI
+- [ ] Add macro tracking UI
+
+### Phase 4: Polish (Week 4)
+- [ ] Empty states
 - [ ] Loading states
-
----
-
-## Technical Tasks
-
-### Backend
-1. Add profile endpoints (GET/PUT user profile)
-2. Add unit conversion utilities
-3. Add TDEE/BMR calculation service
-4. Create food_cache table and API
-5. Update user model with new fields
-
-### Frontend
-1. Create new onboarding flow (8-9 pages)
-2. Add unit toggle components
-3. Add profile settings page
-4. Create food search with cache
-5. Add "Recent foods" to meal entry
+- [ ] Error handling
 
 ---
 
 ## References
 
 - Onboarding research: `03_video_research/onboarding_reference/`
+- Screen observations: `02_screen_by_screen_observations.md`
 - Current data model: `02_architecture_gdpr/26_FINAL_data_model...`
-- Current onboarding: `frontend/src/app/onboarding/`
-
----
-
-## Next Steps
-
-1. Review this plan
-2. Approve priorities
-3. Start implementing onboarding
-4. Test with real user flow
