@@ -85,6 +85,31 @@ export const updateFoodLogSchema = z.object({
 export const foodLogIdSchema = z.object({
   foodLogId: uuidSchema,
 });
+// ============================================================================
+// Food Cache Schemas
+// ============================================================================
+
+export const createFoodCacheSchema = z.object({
+  userId: uuidSchema,
+  foodName: z.string().min(1).max(500),
+  brandName: z.string().max(255).optional(),
+  defaultQuantity: positiveNumberSchema.optional(),
+  defaultUnit: z.string().min(1).max(50).optional(),
+  nutrition: nutritionSchema,
+});
+
+export const updateFoodCacheSchema = z.object({
+  foodName: z.string().min(1).max(500).optional(),
+  brandName: z.string().max(255).optional(),
+  defaultQuantity: positiveNumberSchema.optional(),
+  defaultUnit: z.string().min(1).max(50).optional(),
+  nutrition: nutritionSchema.optional(),
+});
+
+export const foodCacheIdSchema = z.object({
+  foodCacheId: uuidSchema,
+});
+
 
 // ============================================================================
 // Goal Schemas
@@ -157,6 +182,9 @@ export const dateRangeSchema = z.object({
   startDate: dateSchema.optional(),
   endDate: dateSchema.optional(),
 });
+
+export const foodCacheQuerySchema = paginationSchema;
+
 
 // ============================================================================
 // Query Parameter Schemas
