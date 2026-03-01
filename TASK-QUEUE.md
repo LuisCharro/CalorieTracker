@@ -33,14 +33,14 @@
 - **Files:** frontend/src/app/onboarding/
 - **Commands:** npm run build
 - **Verification:** All 5 profile steps work
-- **Status:** PENDING
+- **Status:** COMPLETED (48d2613)
 
 ### Task 1.5: Rebuild Onboarding - Activity + Goals (Steps 6-7)
 - **Scope:** Frontend pages
 - **Files:** frontend/src/app/onboarding/
 - **Commands:** npm run build
 - **Verification:** Activity level + goals work
-- **Status:** PENDING
+- **Status:** COMPLETED (48d2613)
 
 ### Task 1.6: Rebuild Onboarding - Preferences + Complete (Step 8)
 - **Scope:** Frontend pages
