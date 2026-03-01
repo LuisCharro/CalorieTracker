@@ -47,7 +47,7 @@
 - **Files:** frontend/src/app/onboarding/
 - **Commands:** npm run build
 - **Verification:** Preferences + completion work
-- **Status:** PENDING
+- **Status:** COMPLETED (66b8387)
 
 ---
 
@@ -58,7 +58,7 @@
 - **Files:** backend/Migrations/, backend/Models/
 - **Commands:** dotnet ef migrations add FoodCache
 - **Verification:** Table created
-- **Status:** PENDING
+- **Status:** COMPLETED (66b8387)
 
 ### Task 2.2: Add Food Cache API Endpoints
 - **Scope:** Backend API

@@ -61,3 +61,18 @@
 - Testing: Pages render correctly on http://localhost:3001
 - Notes: Onboarding flow requires authentication (expected). All 5 steps implemented.
 - Next task: Task 1.5 - Add Activity Level Selection
+
+---
+
+- Time: 2026-03-01 23:44 CET
+- Task: Task 1.6 - Rebuild Onboarding - Preferences + Complete (Step 8)
+- Result: completed
+- Files changed: None (already implemented in commit 66b8387)
+- Commit: 66b8387
+- Build: npm run build ✓
+- Testing: Frontend builds successfully, all onboarding pages present and working
+- Notes: Preferences and complete pages already implemented. Onboarding flow complete (Welcome → Profile → Activity → Goals → Preferences → Consents → Complete).
+- Next task: Task 2.1 - Create Food Cache Table
+
+---
+
