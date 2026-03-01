@@ -20,6 +20,7 @@ import notificationsRouter from './routers/notifications.router.js';
 import testErrorsRouter from './routers/test-errors.router.js';
 import foodCacheRouter from './routers/food-cache.router.js';
 import weightLogsRouter from './routers/weight-logs.router.js';
+import exercisesRouter from './routers/exercises.router.js';
 import { startJobScheduler, stopJobScheduler } from './jobs/scheduler.js';
 
 // Load environment variables
@@ -67,6 +68,7 @@ app.use('/api/auth', idempotencyMiddleware, authRouter);
 app.use('/api/logs', idempotencyMiddleware, logsRouter);
 app.use('/api/food-cache', idempotencyMiddleware, foodCacheRouter);
 app.use('/api/weight-logs', idempotencyMiddleware, weightLogsRouter);
+app.use('/api/exercises', idempotencyMiddleware, exercisesRouter);
 app.use('/api/goals', idempotencyMiddleware, goalsRouter);
 app.use('/api/gdpr', gdprRouter);
 app.use('/api/settings', idempotencyMiddleware, settingsRouter);
