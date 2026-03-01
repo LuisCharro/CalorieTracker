@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input, Card, CardHeader, CardBody, Alert } from '../../shared/components';
 import { Layout, Header, Navigation } from '../../shared/layout';
@@ -20,6 +20,17 @@ interface FoodItem {
   nutrition: Nutrition | null;
 }
 
+interface RecentFood {
+  id: string;
+  food_name: string;
+  brand_name: string | null;
+  default_quantity: number;
+  default_unit: string;
+  nutrition: Nutrition | null;
+  use_count: number;
+  last_used_at: string;
+}
+
 export default function LogPage() {
   const router = useRouter();
   const { user } = useAuth();
@@ -35,6 +46,8 @@ export default function LogPage() {
   const [success, setSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [loggedCount, setLoggedCount] = useState(0);
+  const [recentFoods, setRecentFoods] = useState<RecentFood[]>([]);
+  const [isLoadingRecent, setIsLoadingRecent] = useState(false);
 
   const mealTypes = [
     { value: 'breakfast', label: 'Breakfast', icon: '☀️' },
@@ -42,6 +55,38 @@ export default function LogPage() {
     { value: 'dinner', label: 'Dinner', icon: '🌙' },
     { value: 'snack', label: 'Snack', icon: '🍎' },
   ];
+
+  // Fetch recent foods on mount
+  useEffect(() => {
+    const fetchRecentFoods = async () => {
+      if (!user?.id) return;
+      
+      setIsLoadingRecent(true);
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/food-cache/recent?userId=${user.id}&limit=10`
+        );
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+          // Parse nutrition string if it's a string
+          const parsedFoods = data.data.map((food: RecentFood) => ({
+            ...food,
+            nutrition: typeof food.nutrition === 'string' 
+              ? JSON.parse(food.nutrition) 
+              : food.nutrition,
+          }));
+          setRecentFoods(parsedFoods);
+        }
+      } catch (err) {
+        console.error('Failed to fetch recent foods:', err);
+      } finally {
+        setIsLoadingRecent(false);
+      }
+    };
+
+    fetchRecentFoods();
+  }, [user?.id]);
 
   const addItem = useCallback(() => {
     setFoodItems(prev => [
@@ -64,6 +109,38 @@ export default function LogPage() {
       )
     );
   }, []);
+
+  const addRecentFood = useCallback((recentFood: RecentFood) => {
+    // Find the first empty slot or add a new item
+    const emptyIndex = foodItems.findIndex(item => !item.foodName.trim());
+    
+    if (emptyIndex >= 0) {
+      // Update the empty slot
+      const updatedItems = [...foodItems];
+      updatedItems[emptyIndex] = {
+        id: updatedItems[emptyIndex].id,
+        foodName: recentFood.food_name,
+        brandName: recentFood.brand_name || '',
+        quantity: recentFood.default_quantity,
+        unit: recentFood.default_unit,
+        nutrition: recentFood.nutrition,
+      };
+      setFoodItems(updatedItems);
+    } else {
+      // Add a new item
+      setFoodItems(prev => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          foodName: recentFood.food_name,
+          brandName: recentFood.brand_name || '',
+          quantity: recentFood.default_quantity,
+          unit: recentFood.default_unit,
+          nutrition: recentFood.nutrition,
+        },
+      ]);
+    }
+  }, [foodItems]);
 
   const parseFoodText = useCallback(async (id: string, foodName: string) => {
     if (foodName.trim().length < 3) {
@@ -163,6 +240,51 @@ export default function LogPage() {
             <Alert type="success" className="mb-4">
               {successMessage} {loggedCount > 1 && `(Total: ${loggedCount} items this session)`}
             </Alert>
+          )}
+
+          {/* Recent Foods Section */}
+          {recentFoods.length > 0 && (
+            <Card className="mb-4">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-neutral-900">
+                    Recent Foods
+                  </h3>
+                  <span className="text-xs text-neutral-500">
+                    Tap to add
+                  </span>
+                </div>
+              </CardHeader>
+              <CardBody>
+                <div className="flex flex-wrap gap-2">
+                  {recentFoods.map((food) => (
+                    <button
+                      key={food.id}
+                      onClick={() => addRecentFood(food)}
+                      className="px-3 py-2 bg-neutral-100 hover:bg-primary-50 border border-neutral-200 hover:border-primary-300 rounded-lg text-left transition-colors"
+                    >
+                      <div className="text-sm font-medium text-neutral-900">
+                        {food.food_name}
+                      </div>
+                      {food.brand_name && (
+                        <div className="text-xs text-neutral-500 truncate max-w-[120px]">
+                          {food.brand_name}
+                        </div>
+                      )}
+                      <div className="text-xs text-primary-600 mt-1">
+                        {food.nutrition?.calories || '—'} cal
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </CardBody>
+            </Card>
+          )}
+
+          {isLoadingRecent && recentFoods.length === 0 && (
+            <div className="text-center py-2 text-sm text-neutral-500 mb-4">
+              Loading recent foods...
+            </div>
           )}
 
           <Card className="mb-4">
