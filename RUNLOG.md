@@ -42,3 +42,12 @@
 - Commit: e8a97f3
 - Build: npm run build ✓
 - Next task: Task 1.3 - Add TDEE/BMR Calculation Service
+
+- Time: 2026-03-01 23:04 CET
+- Task: Task 1.3 - Add TDEE/BMR Calculation Service
+- Result: completed
+- Files changed: backend/src/utils/calorieCalculator.ts
+- Commit: b2948cc
+- Build: npm run build ✓
+- Tests: Manual verification with male/female profiles
+- Next task: Task 1.4 - Rebuild Onboarding - Welcome + Profile (Steps 1-5)
