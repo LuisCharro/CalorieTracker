@@ -51,3 +51,13 @@
 - Build: npm run build ✓
 - Tests: Manual verification with male/female profiles
 - Next task: Task 1.4 - Rebuild Onboarding - Welcome + Profile (Steps 1-5)
+
+- Time: 2026-03-01 23:30 CET
+- Task: Task 1.4 - Rebuild Onboarding - Welcome + Profile (Steps 1-5)
+- Result: completed
+- Files changed: frontend/src/app/onboarding/ (page.tsx + profile/* + activity/page.tsx)
+- Commit: 48d2613
+- Build: npm run build ✓
+- Testing: Pages render correctly on http://localhost:3001
+- Notes: Onboarding flow requires authentication (expected). All 5 steps implemented.
+- Next task: Task 1.5 - Add Activity Level Selection
