@@ -19,6 +19,15 @@ export interface User {
   createdAt: string;
   lastLoginAt?: string;
   token?: string;
+  // Profile fields for onboarding
+  dateOfBirth?: string;
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+  heightCm?: number;
+  weightKg?: number;
+  activityLevel?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+  weightGoal?: 'lose' | 'maintain' | 'gain';
+  targetWeightKg?: number;
+  unitSystem?: 'metric' | 'imperial';
 }
 
 export interface CreateUserRequest {
@@ -30,6 +39,15 @@ export interface CreateUserRequest {
 export interface UpdateUserRequest {
   displayName?: string;
   preferences?: Record<string, unknown>;
+  // Profile fields
+  dateOfBirth?: string;
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+  heightCm?: number;
+  weightKg?: number;
+  activityLevel?: 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
+  weightGoal?: 'lose' | 'maintain' | 'gain';
+  targetWeightKg?: number;
+  unitSystem?: 'metric' | 'imperial';
 }
 
 export interface LoginRequest {

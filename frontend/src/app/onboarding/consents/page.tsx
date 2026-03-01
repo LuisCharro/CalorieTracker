@@ -138,7 +138,7 @@ export default function OnboardingConsentsPage() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push('/onboarding/preferences')}
+              onClick={() => router.push('/onboarding/goals')}
             >
               Back
             </Button>
