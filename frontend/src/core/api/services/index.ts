@@ -8,3 +8,5 @@ export { default as logsService, LogsService } from './logs.service';
 export { default as goalsService, GoalsService } from './goals.service';
 export { default as gdprService, GdprService } from './gdpr.service';
 export { default as settingsService, SettingsService } from './settings.service';
+export { default as weightLogsService, WeightLogsService } from './weight-logs.service';
+export type { WeightLog, CreateWeightLogRequest, UpdateWeightLogRequest, WeightLogsQuery } from './weight-logs.service';

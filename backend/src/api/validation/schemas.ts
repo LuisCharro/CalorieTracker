@@ -129,6 +129,10 @@ export const updateGoalSchema = z.object({
   endDate: dateSchema.optional(),
 });
 
+export const weightLogIdSchema = z.object({
+  id: z.string().uuid(),
+});
+
 export const goalIdSchema = z.object({
   goalId: uuidSchema,
 });
