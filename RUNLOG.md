@@ -147,3 +147,16 @@
   - DELETE /api/exercises/:id - Delete entry
 - Frontend: /exercises page with form and history
 - Next task: Task 3.3 - Create Water Logs Table + UI
+
+### Worker Slice
+- Time: 2026-03-02 00:55 CET
+- Task: Task 3.3 - Create Water Logs Table + UI
+- Result: completed
+- Files changed: 
+  - backend/src/db/migrations/0009_add_water_logs.sql
+  - backend/src/api/routers/water-logs.router.ts
+  - backend/src/api/server.ts (router registration)
+  - frontend/src/app/settings/water/page.tsx
+- Commit: 1e04b66
+- Build: npm run build ✓ (backend + frontend)
+- Next task: Task 4.1 - Empty States
