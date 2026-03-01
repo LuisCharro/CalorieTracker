@@ -34,3 +34,11 @@
 - Commit: 0e401d8
 - Build: npm run build ✓
 - Next task: Task 1.2 - Create Unit Conversion Utilities
+
+- Time: 2026-03-01 22:58 CET
+- Task: Task 1.2 - Create Unit Conversion Utilities
+- Result: completed
+- Files changed: backend/src/utils/unitConverter.ts
+- Commit: e8a97f3
+- Build: npm run build ✓
+- Next task: Task 1.3 - Add TDEE/BMR Calculation Service
