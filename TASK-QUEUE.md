@@ -16,15 +16,15 @@
 
 ### Task 1.2: Create Unit Conversion Utilities
 - **Scope:** Backend service
-- **Files:** backend/Services/UnitConverter.cs
-- **Commands:** dotnet build
+- **Files:** backend/src/utils/unitConverter.ts
+- **Commands:** npm run build
 - **Verification:** Unit conversion tests pass
-- **Status:** PENDING
+- **Status:** COMPLETED
 
 ### Task 1.3: Add TDEE/BMR Calculation Service
 - **Scope:** Backend service
 - **Files:** backend/Services/CalorieCalculator.cs
-- **Commands:** dotnet build
+- **Commands:** npm run build
 - **Verification:** TDEE calculation matches expected values
 - **Status:** PENDING
 
@@ -63,7 +63,7 @@
 ### Task 2.2: Add Food Cache API Endpoints
 - **Scope:** Backend API
 - **Files:** backend/Controllers/
-- **Commands:** dotnet build
+- **Commands:** npm run build
 - **Verification:** CRUD endpoints work
 - **Status:** PENDING
 
@@ -81,21 +81,21 @@
 ### Task 3.1: Create Weight Logs Table + UI
 - **Scope:** Backend + Frontend
 - **Files:** backend/Migrations/, frontend/src/app/
-- **Commands:** dotnet build && npm run build
+- **Commands:** npm run build && npm run build
 - **Verification:** Weight logging works
 - **Status:** PENDING
 
 ### Task 3.2: Create Exercises Table + UI
 - **Scope:** Backend + Frontend
 - **Files:** backend/Migrations/, frontend/src/app/
-- **Commands:** dotnet build && npm run build
+- **Commands:** npm run build && npm run build
 - **Verification:** Exercise logging works
 - **Status:** PENDING
 
 ### Task 3.3: Create Water Logs Table + UI
 - **Scope:** Backend + Frontend
 - **Files:** backend/Migrations/, frontend/src/app/
-- **Commands:** dotnet build && npm run build
+- **Commands:** npm run build && npm run build
 - **Verification:** Water logging works
 - **Status:** PENDING
 
