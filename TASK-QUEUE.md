@@ -65,14 +65,14 @@
 - **Files:** backend/Controllers/
 - **Commands:** npm run build
 - **Verification:** CRUD endpoints work
-- **Status:** PENDING
+- **Status:** COMPLETED (45f14f8)
 
 ### Task 2.3: Add Recent Foods to Meal Entry
 - **Scope:** Frontend
 - **Files:** frontend/src/app/today/
 - **Commands:** npm run build
 - **Verification:** Recent foods show per meal
-- **Status:** PENDING
+- **Status:** COMPLETED (8b7021b)
 
 ---
 
