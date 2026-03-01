@@ -23,10 +23,10 @@
 
 ### Task 1.3: Add TDEE/BMR Calculation Service
 - **Scope:** Backend service
-- **Files:** backend/Services/CalorieCalculator.cs
+- **Files:** backend/src/utils/calorieCalculator.ts
 - **Commands:** npm run build
 - **Verification:** TDEE calculation matches expected values
-- **Status:** PENDING
+- **Status:** COMPLETED (b2948cc)
 
 ### Task 1.4: Rebuild Onboarding - Welcome + Profile (Steps 1-5)
 - **Scope:** Frontend pages
