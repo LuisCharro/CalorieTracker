@@ -125,3 +125,25 @@
   - DELETE /api/weight-logs/:id - Delete entry
 - Frontend: Settings > Weight page with form and history
 - Next task: Task 3.2 - Create Exercises Table + UI
+
+- Time: 2026-03-02 00:44 CET
+- Task: Task 3.2 - Create Exercises Table + UI
+- Result: completed
+- Files changed: 
+  - backend/src/db/migrations/0008_add_exercises.sql
+  - backend/src/api/routers/exercises.router.ts
+  - backend/src/api/server.ts
+  - frontend/src/core/api/services/exercises.service.ts
+  - frontend/src/app/exercises/page.tsx
+- Commit: fbd3f4d
+- Build: npm run build ✓ (backend and frontend)
+- Database: exercises table created successfully
+- Endpoints implemented:
+  - GET /api/exercises - List user's exercises
+  - GET /api/exercises/summary - Get exercise summary
+  - GET /api/exercises/:id - Get single entry
+  - POST /api/exercises - Create new entry
+  - PATCH /api/exercises/:id - Update entry
+  - DELETE /api/exercises/:id - Delete entry
+- Frontend: /exercises page with form and history
+- Next task: Task 3.3 - Create Water Logs Table + UI

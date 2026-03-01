@@ -87,6 +87,7 @@
 - **Status:** PENDING
 
 ### Task 3.2: Create Exercises Table + UI
+- **Status:** COMPLETED (fbd3f4d)
 - **Scope:** Backend + Frontend
 - **Files:** backend/Migrations/, frontend/src/app/
 - **Commands:** npm run build && npm run build
