@@ -76,3 +76,27 @@
 
 ---
 
+
+- Time: 2026-03-02 00:01 CET
+- Task: Task 2.2 - Add Food Cache API Endpoints
+- Result: completed
+- Files changed: 
+  - backend/src/db/migrations/0006_add_food_cache.sql
+  - backend/src/api/routers/food-cache.router.ts
+  - backend/src/api/validation/schemas.ts
+  - backend/src/api/server.ts
+- Commit: 45f14f8
+- Build: npm run build ✓
+- Migration: npm run migrate ✓
+- Database: food_cache table created successfully
+- Endpoints implemented:
+  - GET /api/food-cache - List user's cached foods
+  - GET /api/food-cache/search?query=... - Search cached foods
+  - GET /api/food-cache/recent - Get recently used foods
+  - GET /api/food-cache/:id - Get single entry
+  - POST /api/food-cache - Create/upsert entry
+  - POST /api/food-cache/use/:id - Record usage (increment count)
+  - PATCH /api/food-cache/:id - Update entry
+  - DELETE /api/food-cache/:id - Delete entry
+- Notes: Auto-increments use_count when adding existing foods (upsert logic). Foods sorted by usage count for "recent/recently used" feature.
+- Next task: Task 2.3 - Add Recent Foods to Meal Entry
