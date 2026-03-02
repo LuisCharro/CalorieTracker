@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button, Card, CardHeader, CardBody, Alert, EmptyState } from '../../shared/components';
+import { Button, Card, CardHeader, CardBody, Alert, EmptyState, Modal, Input } from '../../shared/components';
 import { Layout, Header, Navigation } from '../../shared/layout';
 import { useAuth } from '../../core/auth';
 import { logsService, goalsService, weightLogsService } from '../../core/api/services';
@@ -55,6 +55,15 @@ export default function TodayPage() {
   const [weightProgress, setWeightProgress] = useState<WeightProgress | null>(null);
   const [isLoadingWeight, setIsLoadingWeight] = useState(false);
   const [weightError, setWeightError] = useState('');
+  
+  // Quick weight modal state
+  const [showWeightModal, setShowWeightModal] = useState(false);
+  const [isSavingWeight, setIsSavingWeight] = useState(false);
+  const [quickWeightValue, setQuickWeightValue] = useState('');
+  const [quickWeightUnit, setQuickWeightUnit] = useState('kg');
+  const [quickWeightNotes, setQuickWeightNotes] = useState('');
+  const [quickWeightMessage, setQuickWeightMessage] = useState('');
+  const [quickWeightMessageType, setQuickWeightMessageType] = useState<'success' | 'danger'>('success');
 
   const loadTodayData = useCallback(async () => {
     if (!user?.id) return;
@@ -139,6 +148,59 @@ export default function TodayPage() {
       setIsLoadingWeight(false);
     }
   }, [user?.id]);
+
+  // Quick weight save handler
+  const handleQuickWeightSave = async () => {
+    if (!user?.id || !quickWeightValue) return;
+
+    setIsSavingWeight(true);
+    setQuickWeightMessage('');
+
+    try {
+      const weightValueNum = parseFloat(quickWeightValue);
+      if (isNaN(weightValueNum) || weightValueNum <= 0) {
+        throw new Error('Please enter a valid weight');
+      }
+
+      await weightLogsService.createWeightLog({
+        userId: user.id,
+        weightValue: weightValueNum,
+        weightUnit: quickWeightUnit,
+        notes: quickWeightNotes || undefined,
+      });
+
+      // Refresh weight progress immediately
+      await fetchWeightProgress();
+
+      // Reset and close modal
+      setQuickWeightMessage('Weight logged successfully!');
+      setQuickWeightMessageType('success');
+      setQuickWeightValue('');
+      setQuickWeightNotes('');
+      setTimeout(() => {
+        setShowWeightModal(false);
+        setQuickWeightMessage('');
+      }, 1000);
+    } catch (err: any) {
+      console.error('Failed to save weight:', err);
+      setQuickWeightMessage(err.message || 'Failed to log weight');
+      setQuickWeightMessageType('danger');
+    } finally {
+      setIsSavingWeight(false);
+    }
+  };
+
+  const openQuickWeightModal = () => {
+    // Pre-fill with current weight if available
+    if (weightProgress?.currentWeight) {
+      setQuickWeightValue(weightProgress.currentWeight.toString());
+    } else {
+      setQuickWeightValue('');
+    }
+    setQuickWeightNotes('');
+    setQuickWeightMessage('');
+    setShowWeightModal(true);
+  };
 
   useEffect(() => {
     loadTodayData();
@@ -299,16 +361,21 @@ export default function TodayPage() {
                   title="No weight data yet"
                   description="Start tracking your weight to see your progress here"
                   actionLabel="Log Weight"
-                  href="/settings/weight"
+                  onAction={openQuickWeightModal}
                 />
               </CardBody>
             </Card>
           ) : (
             <Card className="mb-6">
               <CardHeader>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">⚖️</span>
-                  <h3 className="text-lg font-semibold text-neutral-900">Weight Progress</h3>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">⚖️</span>
+                    <h3 className="text-lg font-semibold text-neutral-900">Weight Progress</h3>
+                  </div>
+                  <Button size="sm" onClick={openQuickWeightModal}>
+                    + Log Weight
+                  </Button>
                 </div>
               </CardHeader>
               <CardBody>
@@ -527,6 +594,78 @@ export default function TodayPage() {
             </Card>
           )}
         </div>
+
+        {/* Quick Weight Modal */}
+        <Modal
+          isOpen={showWeightModal}
+          onClose={() => setShowWeightModal(false)}
+          title="Log Weight"
+          footer={
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowWeightModal(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleQuickWeightSave}
+                disabled={isSavingWeight || !quickWeightValue}
+                className="flex-1"
+              >
+                {isSavingWeight ? 'Saving...' : 'Save Weight'}
+              </Button>
+            </div>
+          }
+        >
+          {quickWeightMessage && (
+            <Alert
+              type={quickWeightMessageType}
+              className="mb-4"
+            >
+              {quickWeightMessage}
+            </Alert>
+          )}
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">
+                Weight
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="500"
+                  placeholder="Enter weight"
+                  value={quickWeightValue}
+                  onChange={(e) => setQuickWeightValue(e.target.value)}
+                  className="flex-1"
+                />
+                <select
+                  value={quickWeightUnit}
+                  onChange={(e) => setQuickWeightUnit(e.target.value)}
+                  className="px-3 py-2 border border-neutral-300 rounded-lg bg-white"
+                >
+                  <option value="kg">kg</option>
+                  <option value="lb">lb</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-1">
+                Notes (optional)
+              </label>
+              <Input
+                type="text"
+                placeholder="Add a note..."
+                value={quickWeightNotes}
+                onChange={(e) => setQuickWeightNotes(e.target.value)}
+              />
+            </div>
+          </div>
+        </Modal>
 
         {/* Bottom Navigation */}
         <Navigation
