@@ -1,129 +1,44 @@
-# CalorieTracker Task Queue
-**Branch:** development  
-**Created:** 2026-03-01  
-**Based on:** plan/DEVELOPMENT_PLAN.md
+# CalorieTracker Task Queue — Weight Progress Initiative
 
----
+## Active Goal
+Implement weight progress tracking UX and API so users can track kg lost/gained over time.
 
-## Phase 1: Onboarding Rebuild (Priority: HIGH)
+## Pending Slices
 
-### Task 1.1: Add Profile Fields to User Model
-- **Scope:** Backend user model + migration
-- **Files:** backend/Models/, backend/Data/
-- **Commands:** dotnet ef migrations add ProfileFields
-- **Verification:** API returns new profile fields
-- **Status:** COMPLETED
+### W1 — Verify weight logs schema + contracts
+Status: COMPLETED
+- ✅ Confirmed weight_logs supports date (logged_at)/weight (weight_value)/note (notes) and user scoping
+- ✅ Added Zod validation schemas: createWeightLogSchema, updateWeightLogSchema, weightUnitSchema
+- ✅ Build: npm run build (backend) - PASSED
 
-### Task 1.2: Create Unit Conversion Utilities
-- **Scope:** Backend service
-- **Files:** backend/src/utils/unitConverter.ts
-- **Commands:** npm run build
-- **Verification:** Unit conversion tests pass
-- **Status:** COMPLETED
+### W2 — Progress aggregation API
+Status: PENDING
+- Add endpoint returning: startWeight/currentWeight/targetWeight/goalType/changeKg/remainingKg/progressPercent
+- Cover edge cases (missing target, divide by zero)
+- Build: npm run build (backend)
 
-### Task 1.3: Add TDEE/BMR Calculation Service
-- **Scope:** Backend service
-- **Files:** backend/src/utils/calorieCalculator.ts
-- **Commands:** npm run build
-- **Verification:** TDEE calculation matches expected values
-- **Status:** COMPLETED (b2948cc)
+### W3 — Frontend API service wiring
+Status: PENDING
+- Add client service methods for weight logs and progress summary
+- Build: npm run build (frontend)
 
-### Task 1.4: Rebuild Onboarding - Welcome + Profile (Steps 1-5)
-- **Scope:** Frontend pages
-- **Files:** frontend/src/app/onboarding/
-- **Commands:** npm run build
-- **Verification:** All 5 profile steps work
-- **Status:** COMPLETED (48d2613)
+### W4 — Today page progress card
+Status: PENDING
+- Add Weight Progress card on /today (loading/error/empty states)
+- Transcript-independent and non-blocking
+- Build: npm run build (frontend)
 
-### Task 1.5: Rebuild Onboarding - Activity + Goals (Steps 6-7)
-- **Scope:** Frontend pages
-- **Files:** frontend/src/app/onboarding/
-- **Commands:** npm run build
-- **Verification:** Activity level + goals work
-- **Status:** COMPLETED (48d2613)
+### W5 — Weight logging UI improvements
+Status: PENDING
+- Add/edit/delete weight entries flow and immediate progress refresh
+- Build: npm run build (frontend)
 
-### Task 1.6: Rebuild Onboarding - Preferences + Complete (Step 8)
-- **Scope:** Frontend pages
-- **Files:** frontend/src/app/onboarding/
-- **Commands:** npm run build
-- **Verification:** Preferences + completion work
-- **Status:** COMPLETED (66b8387)
+### W6 — Validation pass
+Status: PENDING
+- End-to-end manual check: signup/onboarding -> log weight -> progress updates
+- Update RUNLOG.md with evidence
 
----
-
-## Phase 2: Food Cache (Priority: MEDIUM)
-
-### Task 2.1: Create Food Cache Table
-- **Scope:** Backend database
-- **Files:** backend/Migrations/, backend/Models/
-- **Commands:** dotnet ef migrations add FoodCache
-- **Verification:** Table created
-- **Status:** COMPLETED (66b8387)
-
-### Task 2.2: Add Food Cache API Endpoints
-- **Scope:** Backend API
-- **Files:** backend/Controllers/
-- **Commands:** npm run build
-- **Verification:** CRUD endpoints work
-- **Status:** COMPLETED (45f14f8)
-
-### Task 2.3: Add Recent Foods to Meal Entry
-- **Scope:** Frontend
-- **Files:** frontend/src/app/today/
-- **Commands:** npm run build
-- **Verification:** Recent foods show per meal
-- **Status:** COMPLETED (8b7021b)
-
----
-
-## Phase 3: Placeholder Tables (Priority: LOW)
-
-### Task 3.1: Create Weight Logs Table + UI
-- **Status:** COMPLETED (08df547)
-- **Scope:** Backend + Frontend
-- **Files:** backend/Migrations/, frontend/src/app/
-- **Commands:** npm run build && npm run build
-- **Verification:** Weight logging works
-- **Status:** COMPLETED (fa8ae17)
-
-### Task 3.2: Create Exercises Table + UI
-- **Status:** COMPLETED (fbd3f4d)
-- **Scope:** Backend + Frontend
-- **Files:** backend/Migrations/, frontend/src/app/
-- **Commands:** npm run build && npm run build
-- **Verification:** Exercise logging works
-- **Status:** COMPLETED (fa8ae17)
-
-### Task 3.3: Create Water Logs Table + UI
-- **Status:** COMPLETED (1e04b66)
-- **Scope:** Backend + Frontend
-- **Files:** backend/Migrations/, frontend/src/app/
-- **Commands:** npm run build && npm run build
-- **Verification:** Water logging works
-
----
-
-## Phase 4: Polish (Priority: LOW)
-
-### Task 4.1: Empty States
-- **Scope:** Frontend components
-- **Files:** frontend/src/shared/components/
-- **Commands:** npm run build
-- **Verification:** Empty states look good
-- **Status:** COMPLETED (fa8ae17)
-
-### Task 4.2: Loading + Error States
-- **Scope:** Frontend components
-- **Files:** frontend/src/shared/components/
-- **Commands:** npm run build
-- **Verification:** Loading/error states work
-- **Status:** COMPLETED (fa8ae17)
-
----
-
-## Notes
-
-- Phase 1 is blocking - must complete first
-- Phase 2 depends on Phase 1
-- Phase 3 can be done in parallel after Phase 1
-- Phase 4 is final polish
+## Rules
+- Do not mark complete without build passing for touched app.
+- Commit by slice with clear messages.
+- Keep Notes/other features untouched in this initiative.
