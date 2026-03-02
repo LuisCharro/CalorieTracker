@@ -110,18 +110,19 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
+    <>
+      {/* Backdrop - full screen overlay */}
       <div
         className={overlayStyles}
         onClick={() => isCloseOnOverlayClick && onClose()}
         aria-hidden="true"
       />
 
-      {/* Modal */}
-      <div
-        ref={modalRef}
-        className={`relative z-10 w-full ${sizeStyles[size]} rounded-lg bg-white shadow-xl transform transition-all`}
+      {/* Modal - centered on top */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div
+          ref={modalRef}
+          className={`relative z-10 w-full ${sizeStyles[size]} rounded-lg bg-white shadow-xl transform transition-all`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? 'modal-title' : undefined}
@@ -163,7 +164,8 @@ export const Modal: React.FC<ModalProps> = ({
         {/* Footer */}
         {footer && <div className="border-t border-neutral-200 px-6 py-4">{footer}</div>}
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 
