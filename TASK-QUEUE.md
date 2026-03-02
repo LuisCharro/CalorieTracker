@@ -84,7 +84,7 @@
 - **Files:** backend/Migrations/, frontend/src/app/
 - **Commands:** npm run build && npm run build
 - **Verification:** Weight logging works
-- **Status:** PENDING
+- **Status:** COMPLETED (fa8ae17)
 
 ### Task 3.2: Create Exercises Table + UI
 - **Status:** COMPLETED (fbd3f4d)
@@ -92,7 +92,7 @@
 - **Files:** backend/Migrations/, frontend/src/app/
 - **Commands:** npm run build && npm run build
 - **Verification:** Exercise logging works
-- **Status:** PENDING
+- **Status:** COMPLETED (fa8ae17)
 
 ### Task 3.3: Create Water Logs Table + UI
 - **Status:** COMPLETED (1e04b66)
@@ -110,14 +110,14 @@
 - **Files:** frontend/src/shared/components/
 - **Commands:** npm run build
 - **Verification:** Empty states look good
-- **Status:** PENDING
+- **Status:** COMPLETED (fa8ae17)
 
 ### Task 4.2: Loading + Error States
 - **Scope:** Frontend components
 - **Files:** frontend/src/shared/components/
 - **Commands:** npm run build
 - **Verification:** Loading/error states work
-- **Status:** PENDING
+- **Status:** COMPLETED (fa8ae17)
 
 ---
 

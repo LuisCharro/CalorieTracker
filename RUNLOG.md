@@ -160,3 +160,19 @@
 - Commit: 1e04b66
 - Build: npm run build ✓ (backend + frontend)
 - Next task: Task 4.1 - Empty States
+
+### Worker Slice
+- Time: 2026-03-02 01:10 CET
+- Task: Task 4.1 - Empty States
+- Result: completed
+- Files changed: 
+  - frontend/src/shared/components/EmptyState/EmptyState.tsx (new)
+  - frontend/src/shared/components/EmptyState/index.ts (new)
+  - frontend/src/shared/components/index.ts (updated exports)
+  - frontend/src/app/exercises/page.tsx (added empty state)
+  - frontend/src/app/settings/weight/page.tsx (added empty state)
+  - frontend/src/app/settings/water/page.tsx (added empty state)
+- Commit: fa8ae17
+- Build: npm run build ✓
+- Notes: Created reusable EmptyState component with icon, title, description, and CTA. Updated exercises, weight, and water pages with consistent empty state UI.
+- Next task: Task 4.2 - Loading + Error States
