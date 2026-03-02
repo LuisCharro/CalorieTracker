@@ -33,3 +33,6 @@ export type { CalorieChartProps, TimeRange as CalorieTimeRange } from './Calorie
 
 export { WaterChart } from './WaterChart';
 export type { WaterChartProps, TimeRange as WaterTimeRange } from './WaterChart';
+
+export { CombinedChart } from './CombinedChart';
+export type { CombinedChartProps, TimeRange as CombinedTimeRange } from './CombinedChart';

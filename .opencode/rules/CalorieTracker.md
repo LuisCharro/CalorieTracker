@@ -1,0 +1,1 @@
+/Users/luis/Repos/CalorieTracker/.kilocode/rules/CalorieTracker.md

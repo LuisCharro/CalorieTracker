@@ -6,10 +6,11 @@ import { Button, Card, CardHeader, CardBody, Alert, EmptyState } from '../../sha
 import { Layout, Header, Navigation } from '../../shared/layout';
 import { useAuth } from '../../core/auth';
 import { logsService, weightLogsService, waterLogsService, goalsService } from '../../core/api/services';
-import { WeightTrendChart, CalorieChart, WaterChart } from '../../shared/components';
+import { WeightTrendChart, CalorieChart, WaterChart, CombinedChart } from '../../shared/components';
 import type { TimeRange as WeightTimeRange } from '../../shared/components/WeightTrendChart';
 import type { TimeRange as CalorieTimeRange } from '../../shared/components/CalorieChart';
 import type { TimeRange as WaterTimeRange } from '../../shared/components/WaterChart';
+import type { TimeRange as CombinedTimeRange } from '../../shared/components/CombinedChart';
 import type { DailySummary } from '../../core/api/services/logs.service';
 import type { WeightProgress } from '../../core/api/services/weight-logs.service';
 import type { WaterProgress } from '../../core/api/services/water-logs.service';
@@ -17,11 +18,11 @@ import type { Goal } from '../../core/contracts/types';
 import { GoalType } from '../../core/contracts/enums';
 import { RouteGuard } from '../../core/auth/routeGuard';
 
-type ProgressTab = 'weight' | 'calories' | 'macros' | 'water';
+type ProgressTab = 'overview' | 'weight' | 'calories' | 'macros' | 'water';
 
 export default function ProgressPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<ProgressTab>('calories');
+  const [activeTab, setActiveTab] = useState<ProgressTab>('overview');
   
   const [weightProgress, setWeightProgress] = useState<WeightProgress | null>(null);
   const [calorieData, setCalorieData] = useState<DailySummary[]>([]);
@@ -31,6 +32,7 @@ export default function ProgressPage() {
   const [weightTimeRange, setWeightTimeRange] = useState<WeightTimeRange>('30d');
   const [calorieTimeRange, setCalorieTimeRange] = useState<CalorieTimeRange>('30d');
   const [waterTimeRange, setWaterTimeRange] = useState<WaterTimeRange>('30d');
+  const [combinedTimeRange, setCombinedTimeRange] = useState<CombinedTimeRange>('30d');
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -120,6 +122,7 @@ export default function ProgressPage() {
   };
 
   const tabs: { id: ProgressTab; label: string }[] = [
+    { id: 'overview', label: 'Overview' },
     { id: 'calories', label: 'Calories' },
     { id: 'weight', label: 'Weight' },
     { id: 'macros', label: 'Macros' },
@@ -167,6 +170,65 @@ export default function ProgressPage() {
             </Card>
           ) : (
             <>
+              {/* Overview Tab - Combined Calories + Weight Chart */}
+              {activeTab === 'overview' && (
+                <Card>
+                  <CardHeader>
+                    <h2 className="text-lg font-semibold">Overview: Calories & Weight</h2>
+                  </CardHeader>
+                  <CardBody>
+                    {weightProgress?.hasData || calorieData.length > 0 ? (
+                      <>
+                        <CombinedChart
+                          weightData={combinedTimeRange === '7d' ? weightProgress?.trend7d || [] : weightProgress?.trend30d || []}
+                          calorieData={calorieData}
+                          timeRange={combinedTimeRange}
+                          targetWeight={weightProgress?.targetWeight}
+                          calorieGoal={getActiveCalorieGoal()}
+                          onTimeRangeChange={setCombinedTimeRange}
+                          showTimeRangeToggle
+                          height={300}
+                        />
+                        
+                        <div className="mt-6 grid grid-cols-2 gap-4 pt-4 border-t border-neutral-200">
+                          <div className="text-center">
+                            <div className="text-sm text-neutral-500">Avg Calories/Day</div>
+                            <div className="text-2xl font-bold text-amber-600">
+                              {getAverageCalories()} kcal
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-sm text-neutral-500">Current Weight</div>
+                            <div className="text-2xl font-bold text-blue-600">
+                              {weightProgress?.currentWeight || '—'} kg
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 flex justify-center gap-6 text-sm">
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <span className="text-neutral-600">Weight</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                            <span className="text-neutral-600">Calories</span>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <EmptyState
+                        icon="📊"
+                        title="No data yet"
+                        description="Start logging food and weight to see your overview"
+                        actionLabel="Log Food"
+                        onAction={() => {}}
+                      />
+                    )}
+                  </CardBody>
+                </Card>
+              )}
+
               {/* Calories Tab */}
               {activeTab === 'calories' && (
                 <Card>
