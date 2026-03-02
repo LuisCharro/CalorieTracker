@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button, Card, CardBody, Alert, Input } from '../../../shared/components';
+import { Button, Card, CardBody, Alert, Input, EmptyState } from '../../../shared/components';
 import { Layout, Header } from '../../../shared/layout';
 import { useAuth } from '../../../core/auth';
 import { RouteGuard } from '../../../core/auth/routeGuard';

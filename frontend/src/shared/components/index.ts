@@ -22,3 +22,5 @@ export type { LoadingProps } from './Loading';
 
 export { Alert } from './Alert';
 export type { AlertProps } from './Alert';
+
+export { EmptyState } from './EmptyState';

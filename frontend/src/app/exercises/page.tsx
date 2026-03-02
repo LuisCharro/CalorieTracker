@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button, Card, CardBody, Alert, Input } from '../../shared/components';
+import { Button, Card, CardBody, Alert, Input, EmptyState } from '../../shared/components';
 import { Layout, Header } from '../../shared/layout';
 import { useAuth } from '../../core/auth';
 import exercisesService, { type Exercise, type ExerciseSummary } from '../../core/api/services/exercises.service';
@@ -227,9 +227,12 @@ export default function ExercisesPage() {
             <CardBody>
               <h2 className="text-lg font-semibold mb-4">History</h2>
               {exercises.length === 0 ? (
-                <p className="text-neutral-500 text-center py-4">
-                  No exercises logged yet
-                </p>
+                <EmptyState
+                  icon="🏃"
+                  title="No exercises logged yet"
+                  description="Start tracking your workouts to see your exercise history"
+                  actionLabel="Log Exercise"
+                />
               ) : (
                 <div className="space-y-3">
                   {exercises.map((exercise) => (

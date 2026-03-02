@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button, Card, CardBody, Alert, Input } from '../../../shared/components';
+import { Button, Card, CardBody, Alert, Input, EmptyState } from '../../../shared/components';
 import { Layout, Header } from '../../../shared/layout';
 import { useAuth } from '../../../core/auth';
 import { weightLogsService, type WeightLog } from '../../../core/api/services';
@@ -205,9 +205,12 @@ export default function SettingsWeightPage() {
             <CardBody>
               <h2 className="text-lg font-semibold mb-4">History</h2>
               {weightLogs.length === 0 ? (
-                <p className="text-neutral-500 text-center py-4">
-                  No weight entries yet
-                </p>
+                <EmptyState
+                  icon="⚖️"
+                  title="No weight entries yet"
+                  description="Start tracking your weight to see your progress over time"
+                  actionLabel="Log Weight"
+                />
               ) : (
                 <div className="space-y-3">
                   {weightLogs.map((log) => (
