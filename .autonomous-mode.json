@@ -14,5 +14,5 @@
   "dev_recovery_enabled": "false",
   "dev_recovery_health_url": "http://localhost:3000/",
   "dev_recovery_commands": "./scripts/build.sh rebuild && ./scripts/dev.sh start",
-  "updated_at": "2026-03-02 01:14 CET"
+  "updated_at": "2026-03-02 08:14:00 CET"
 }
