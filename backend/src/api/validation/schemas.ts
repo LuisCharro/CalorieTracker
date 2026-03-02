@@ -120,6 +120,36 @@ export const foodCacheIdSchema = z.object({
 
 
 // ============================================================================
+// Weight Log Schemas
+// ============================================================================
+
+export const weightUnitSchema = z.enum(['kg', 'lb']).default('kg');
+
+export const createWeightLogSchema = z.object({
+  userId: uuidSchema,
+  weightValue: z.number()
+    .positive('Weight must be positive')
+    .max(1000, 'Weight must be less than 1000'),
+  weightUnit: weightUnitSchema.optional(),
+  loggedAt: dateSchema.optional(),
+  notes: z.string().max(2000).optional(),
+});
+
+export const updateWeightLogSchema = z.object({
+  weightValue: z.number()
+    .positive('Weight must be positive')
+    .max(1000, 'Weight must be less than 1000')
+    .optional(),
+  weightUnit: weightUnitSchema.optional(),
+  loggedAt: dateSchema.optional(),
+  notes: z.string().max(2000).optional(),
+});
+
+export const weightLogIdSchema = z.object({
+  id: z.string().uuid(),
+});
+
+// ============================================================================
 // Goal Schemas
 // ============================================================================
 
@@ -135,10 +165,6 @@ export const updateGoalSchema = z.object({
   targetValue: positiveNumberSchema.optional(),
   isActive: z.boolean().optional(),
   endDate: dateSchema.optional(),
-});
-
-export const weightLogIdSchema = z.object({
-  id: z.string().uuid(),
 });
 
 export const goalIdSchema = z.object({
