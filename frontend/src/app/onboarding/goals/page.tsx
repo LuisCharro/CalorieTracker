@@ -34,6 +34,15 @@ const calculateTDEE = (bmr: number, activityLevel: string): number => {
 export default function OnboardingGoalsPage() {
   const router = useRouter();
   const { user, refreshUser } = useAuth();
+
+  // Ensure latest profile data is loaded (onboarding steps update user fields)
+  useEffect(() => {
+    refreshUser().catch((err) => {
+      console.error('Failed to refresh user on goals page:', err);
+    });
+    // Intentionally run once on page mount to sync profile fields.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
   // Calculate age from dateOfBirth
   const age = useMemo(() => {
@@ -70,10 +79,19 @@ export default function OnboardingGoalsPage() {
     };
   }, [user?.weightKg, user?.heightCm, age, user?.gender, user?.activityLevel]);
 
-  const [selectedGoal, setSelectedGoal] = useState<'lose' | 'maintain' | 'gain'>('maintain');
+  const [selectedGoal, setSelectedGoal] = useState<'lose' | 'maintain' | 'gain'>(
+    user?.weightGoal || 'maintain'
+  );
   const [targetCalories, setTargetCalories] = useState(2000);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Keep selected goal in sync with onboarding profile choice
+  useEffect(() => {
+    if (user?.weightGoal) {
+      setSelectedGoal(user.weightGoal);
+    }
+  }, [user?.weightGoal]);
 
   // Update target calories when goal changes
   useEffect(() => {
@@ -82,7 +100,8 @@ export default function OnboardingGoalsPage() {
       maintain: 1.0,  // maintenance
       gain: 1.15,     // 15% surplus
     };
-    setTargetCalories(Math.round(tdee * (goalAdjustments[selectedGoal] || 1)));
+    const baseCalories = tdee > 0 ? tdee : 2000;
+    setTargetCalories(Math.round(baseCalories * (goalAdjustments[selectedGoal] || 1)));
   }, [selectedGoal, tdee]);
 
   const goalPresets = {

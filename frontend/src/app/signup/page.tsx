@@ -51,7 +51,7 @@ export default function SignupPage() {
         password: formData.password,
       });
 
-      router.push('/onboarding/goals');
+      router.push('/onboarding/profile/birthday');
     } catch (err: any) {
       setError(err.message || 'Sign up failed. Please try again.');
     } finally {

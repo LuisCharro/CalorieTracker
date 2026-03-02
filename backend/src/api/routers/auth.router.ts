@@ -68,7 +68,8 @@ router.post('/register', async (req, res) => {
     const result = await query(
       `INSERT INTO users (id, email, password_hash, display_name, preferences, onboarding_complete)
        VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, email, display_name, preferences, onboarding_complete, created_at`,
+       RETURNING id, email, display_name, preferences, onboarding_complete, created_at,
+                 date_of_birth, gender, height_cm, weight_kg, activity_level, weight_goal, target_weight_kg`,
       [
         userId,
         data.email,
@@ -98,6 +99,13 @@ router.post('/register', async (req, res) => {
         preferences: user.preferences,
         onboardingComplete: user.onboarding_complete,
         createdAt: user.created_at,
+        dateOfBirth: user.date_of_birth,
+        gender: user.gender === 'prefer_not_to_say' ? 'other' : user.gender,
+        heightCm: user.height_cm ? Number(user.height_cm) : undefined,
+        weightKg: user.weight_kg ? Number(user.weight_kg) : undefined,
+        activityLevel: user.activity_level,
+        weightGoal: user.weight_goal,
+        targetWeightKg: user.target_weight_kg ? Number(user.target_weight_kg) : undefined,
         token,
       },
       meta: {
@@ -120,7 +128,8 @@ router.post('/login', async (req, res) => {
   const data = validateBody(loginSchema, req.body);
 
   const result = await query(
-    `SELECT id, email, password_hash, display_name, preferences, onboarding_complete, created_at
+    `SELECT id, email, password_hash, display_name, preferences, onboarding_complete, created_at,
+            date_of_birth, gender, height_cm, weight_kg, activity_level, weight_goal, target_weight_kg
      FROM users
      WHERE email = $1 AND is_deleted = FALSE`,
     [data.email]
@@ -185,6 +194,13 @@ router.post('/login', async (req, res) => {
       preferences: user.preferences,
       onboardingComplete: user.onboarding_complete,
       createdAt: user.created_at,
+      dateOfBirth: user.date_of_birth,
+      gender: user.gender === 'prefer_not_to_say' ? 'other' : user.gender,
+      heightCm: user.height_cm ? Number(user.height_cm) : undefined,
+      weightKg: user.weight_kg ? Number(user.weight_kg) : undefined,
+      activityLevel: user.activity_level,
+      weightGoal: user.weight_goal,
+      targetWeightKg: user.target_weight_kg ? Number(user.target_weight_kg) : undefined,
       token,
     },
     meta: {
@@ -201,7 +217,8 @@ router.get('/user/:userId', async (req, res) => {
   const { userId } = validateParams(userIdSchema, req.params);
 
   const result = await query(
-    `SELECT id, email, display_name, preferences, onboarding_complete, onboarding_completed_at, created_at, last_login_at
+    `SELECT id, email, display_name, preferences, onboarding_complete, onboarding_completed_at, created_at, last_login_at,
+            date_of_birth, gender, height_cm, weight_kg, activity_level, weight_goal, target_weight_kg
      FROM users
      WHERE id = $1 AND is_deleted = FALSE`,
     [userId]
@@ -224,6 +241,13 @@ router.get('/user/:userId', async (req, res) => {
       onboardingCompletedAt: user.onboarding_completed_at,
       createdAt: user.created_at,
       lastLoginAt: user.last_login_at,
+      dateOfBirth: user.date_of_birth,
+      gender: user.gender === 'prefer_not_to_say' ? 'other' : user.gender,
+      heightCm: user.height_cm ? Number(user.height_cm) : undefined,
+      weightKg: user.weight_kg ? Number(user.weight_kg) : undefined,
+      activityLevel: user.activity_level,
+      weightGoal: user.weight_goal,
+      targetWeightKg: user.target_weight_kg ? Number(user.target_weight_kg) : undefined,
     },
   });
 });
@@ -250,6 +274,46 @@ router.patch('/user/:userId', async (req, res) => {
     values.push(JSON.stringify(data.preferences));
   }
 
+  if (data.dateOfBirth !== undefined) {
+    updates.push(`date_of_birth = $${paramIndex++}`);
+    values.push(data.dateOfBirth);
+  }
+
+  if (data.gender !== undefined) {
+    updates.push(`gender = $${paramIndex++}`);
+    values.push(data.gender === 'prefer_not_to_say' ? 'other' : data.gender);
+  }
+
+  if (data.heightCm !== undefined) {
+    updates.push(`height_cm = $${paramIndex++}`);
+    values.push(data.heightCm);
+  }
+
+  if (data.weightKg !== undefined) {
+    updates.push(`weight_kg = $${paramIndex++}`);
+    values.push(data.weightKg);
+  }
+
+  if (data.activityLevel !== undefined) {
+    updates.push(`activity_level = $${paramIndex++}`);
+    values.push(data.activityLevel);
+  }
+
+  if (data.weightGoal !== undefined) {
+    updates.push(`weight_goal = $${paramIndex++}`);
+    values.push(data.weightGoal);
+  }
+
+  if (data.targetWeightKg !== undefined) {
+    updates.push(`target_weight_kg = $${paramIndex++}`);
+    values.push(data.targetWeightKg);
+  }
+
+  if (data.unitSystem !== undefined) {
+    updates.push(`preferences = jsonb_set(COALESCE(preferences, '{}'::jsonb), '{unitSystem}', to_jsonb($${paramIndex++}::text), true)`);
+    values.push(data.unitSystem);
+  }
+
   if (updates.length === 0) {
     return res.status(400).json({
       success: false,
@@ -264,9 +328,10 @@ router.patch('/user/:userId', async (req, res) => {
 
   const result = await query(
     `UPDATE users
-     SET ${updates.join(', ')}
+     SET ${updates.join(', ')}, updated_at = NOW()
      WHERE id = $${paramIndex} AND is_deleted = FALSE
-     RETURNING id, email, display_name, preferences, onboarding_complete`,
+     RETURNING id, email, display_name, preferences, onboarding_complete,
+               date_of_birth, gender, height_cm, weight_kg, activity_level, weight_goal, target_weight_kg`,
     values
   );
 
@@ -284,6 +349,13 @@ router.patch('/user/:userId', async (req, res) => {
       displayName: user.display_name,
       preferences: user.preferences,
       onboardingComplete: user.onboarding_complete,
+      dateOfBirth: user.date_of_birth,
+      gender: user.gender === 'prefer_not_to_say' ? 'other' : user.gender,
+      heightCm: user.height_cm ? Number(user.height_cm) : undefined,
+      weightKg: user.weight_kg ? Number(user.weight_kg) : undefined,
+      activityLevel: user.activity_level,
+      weightGoal: user.weight_goal,
+      targetWeightKg: user.target_weight_kg ? Number(user.target_weight_kg) : undefined,
     },
   });
 });

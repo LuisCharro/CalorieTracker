@@ -41,6 +41,14 @@ export const loginSchema = z.object({
 export const updateUserSchema = z.object({
   displayName: z.string().min(1).max(255).optional(),
   preferences: z.record(z.unknown()).optional(),
+  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format, use YYYY-MM-DD').optional(),
+  gender: z.enum(['male', 'female', 'other', 'prefer_not_to_say']).optional(),
+  heightCm: z.number().min(50).max(300).optional(),
+  weightKg: z.number().min(20).max(500).optional(),
+  activityLevel: z.enum(['sedentary', 'light', 'moderate', 'active', 'very_active']).optional(),
+  weightGoal: z.enum(['lose', 'maintain', 'gain']).optional(),
+  targetWeightKg: z.number().min(20).max(500).optional(),
+  unitSystem: z.enum(['metric', 'imperial']).optional(),
 });
 
 export const userIdSchema = z.object({
