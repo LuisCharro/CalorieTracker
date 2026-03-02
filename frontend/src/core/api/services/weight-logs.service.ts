@@ -37,6 +37,11 @@ export interface UpdateWeightLogRequest {
   notes?: string;
 }
 
+export interface WeightTrendPoint {
+  date: string;
+  weight: number;
+}
+
 export interface WeightProgress {
   hasData: boolean;
   message: string;
@@ -47,6 +52,9 @@ export interface WeightProgress {
   changeKg: number | null;
   remainingKg: number | null;
   progressPercent: number | null;
+  logCount?: number;
+  trend7d: WeightTrendPoint[];
+  trend30d: WeightTrendPoint[];
 }
 
 export interface WeightLogsQuery {

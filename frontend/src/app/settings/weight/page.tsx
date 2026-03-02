@@ -4,13 +4,16 @@ import { useState, useEffect } from 'react';
 import { Button, Card, CardBody, Alert, Input, EmptyState, Modal } from '../../../shared/components';
 import { Layout, Header } from '../../../shared/layout';
 import { useAuth } from '../../../core/auth';
-import { weightLogsService, type WeightLog } from '../../../core/api/services';
+import { weightLogsService, type WeightLog, type WeightProgress } from '../../../core/api/services';
+import { WeightTrendChart, type TimeRange } from '../../../shared/components/WeightTrendChart';
 import { RouteGuard } from '../../../core/auth/routeGuard';
 
 export default function SettingsWeightPage() {
   const { user } = useAuth();
   const [weightLogs, setWeightLogs] = useState<WeightLog[]>([]);
   const [latestWeight, setLatestWeight] = useState<WeightLog | null>(null);
+  const [weightProgress, setWeightProgress] = useState<WeightProgress | null>(null);
+  const [timeRange, setTimeRange] = useState<TimeRange>('30d');
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -47,15 +50,17 @@ export default function SettingsWeightPage() {
 
     setIsLoading(true);
     try {
-      const [logsResponse, latest] = await Promise.all([
+      const [logsResponse, latest, progress] = await Promise.all([
         weightLogsService.getWeightLogs({ userId: user.id, pageSize: 30 }),
         weightLogsService.getLatestWeight(user.id),
+        weightLogsService.getProgress(user.id),
       ]);
 
       if (logsResponse.success) {
         setWeightLogs(logsResponse.data);
       }
       setLatestWeight(latest);
+      setWeightProgress(progress);
     } catch (error) {
       console.error('Failed to load weight data:', error);
       setMessage('Failed to load weight data');
@@ -269,6 +274,23 @@ export default function SettingsWeightPage() {
               </form>
             </CardBody>
           </Card>
+
+          {/* Weight Trend Chart */}
+          {weightProgress?.hasData && (
+            <Card className="mb-6">
+              <CardBody>
+                <h2 className="text-lg font-semibold mb-4">Weight Trend</h2>
+                <WeightTrendChart
+                  data={timeRange === '7d' ? weightProgress.trend7d : weightProgress.trend30d}
+                  timeRange={timeRange}
+                  targetWeight={weightProgress.targetWeight}
+                  onTimeRangeChange={setTimeRange}
+                  showTimeRangeToggle
+                  height={250}
+                />
+              </CardBody>
+            </Card>
+          )}
 
           {/* Weight History */}
           <Card>

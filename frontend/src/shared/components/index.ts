@@ -24,3 +24,6 @@ export { Alert } from './Alert';
 export type { AlertProps } from './Alert';
 
 export { EmptyState } from './EmptyState';
+
+export { WeightTrendChart } from './WeightTrendChart';
+export type { WeightTrendChartProps, TimeRange } from './WeightTrendChart';

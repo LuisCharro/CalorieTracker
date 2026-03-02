@@ -241,6 +241,7 @@ router.get('/consent/current/:userId', async (req, res) => {
  * PUT /api/settings/:userId/onboarding
  * Complete onboarding for a user
  * This marks the user as having completed onboarding and allows access to the main app
+ * Also creates initial weight log if user has onboarding weight and no weight logs exist
  */
 router.put('/:userId/onboarding', async (req, res) => {
   const { userId } = validateParams(userIdSchema, req.params);
@@ -250,7 +251,7 @@ router.put('/:userId/onboarding', async (req, res) => {
      SET onboarding_complete = TRUE,
          onboarding_completed_at = NOW()
      WHERE id = $1 AND is_deleted = FALSE
-     RETURNING id, email, display_name, onboarding_complete, onboarding_completed_at, created_at`,
+     RETURNING id, email, display_name, onboarding_complete, onboarding_completed_at, created_at, weight_kg`,
     [userId]
   );
 
@@ -259,6 +260,22 @@ router.put('/:userId/onboarding', async (req, res) => {
   }
 
   const user = result.rows[0];
+
+  // Auto-create weight log from onboarding weight if user has weight data and no logs exist
+  if (user.weight_kg) {
+    const existingLogs = await query(
+      `SELECT id FROM weight_logs WHERE user_id = $1 LIMIT 1`,
+      [userId]
+    );
+
+    if (existingLogs.rows.length === 0) {
+      await query(
+        `INSERT INTO weight_logs (id, user_id, weight_value, weight_unit, logged_at, created_at, updated_at)
+         VALUES ($1, $2, $3, 'kg', NOW(), NOW(), NOW())`,
+        [uuidv4(), userId, user.weight_kg]
+      );
+    }
+  }
 
   res.json({
     success: true,

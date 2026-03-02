@@ -8,6 +8,7 @@ import { Layout, Header, Navigation } from '../../shared/layout';
 import { useAuth } from '../../core/auth';
 import { logsService, goalsService, weightLogsService } from '../../core/api/services';
 import type { WeightProgress } from '../../core/api/services/weight-logs.service';
+import { WeightTrendChart, type TimeRange } from '../../shared/components/WeightTrendChart';
 import { RouteGuard } from '../../core/auth/routeGuard';
 import type { FoodLog, Goal } from '../../core/contracts/types';
 import type { Nutrition } from '../../core/contracts/enums';
@@ -55,6 +56,8 @@ export default function TodayPage() {
   const [weightProgress, setWeightProgress] = useState<WeightProgress | null>(null);
   const [isLoadingWeight, setIsLoadingWeight] = useState(false);
   const [weightError, setWeightError] = useState('');
+  const [weightTimeRange, setWeightTimeRange] = useState<TimeRange>('7d');
+  const [showWeightChart, setShowWeightChart] = useState(false);
   
   // Quick weight modal state
   const [showWeightModal, setShowWeightModal] = useState(false);
@@ -373,9 +376,17 @@ export default function TodayPage() {
                     <span className="text-2xl">⚖️</span>
                     <h3 className="text-lg font-semibold text-neutral-900">Weight Progress</h3>
                   </div>
-                  <Button size="sm" onClick={openQuickWeightModal}>
-                    + Log Weight
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowWeightChart(!showWeightChart)}
+                      className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                    >
+                      {showWeightChart ? '▲ Hide Chart' : '▼ Show Chart'}
+                    </button>
+                    <Button size="sm" onClick={openQuickWeightModal}>
+                      + Log Weight
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardBody>
@@ -419,6 +430,19 @@ export default function TodayPage() {
                         style={{ width: `${Math.min(weightProgress.progressPercent, 100)}%` }}
                       />
                     </div>
+                  </div>
+                )}
+                {showWeightChart && (
+                  <div className="mt-4 border-t border-neutral-200 pt-4">
+                    <WeightTrendChart
+                      data={weightTimeRange === '7d' ? weightProgress.trend7d : weightProgress.trend30d}
+                      timeRange={weightTimeRange}
+                      targetWeight={weightProgress.targetWeight}
+                      onTimeRangeChange={setWeightTimeRange}
+                      showTimeRangeToggle
+                      height={150}
+                      compact
+                    />
                   </div>
                 )}
               </CardBody>
