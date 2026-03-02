@@ -350,3 +350,22 @@
 - Build: npm run build ✓
 - Notes: Added GET /api/weight-logs/progress with startWeight, currentWeight, targetWeight, goalType, changeKg, remainingKg, progressPercent. Handles edge cases.
 - Next task: W3 - Frontend API service wiring
+
+### Worker Slice
+- Time: 2026-03-02 09:48 CET
+- Task: W2 - Progress aggregation API
+- Result: completed
+- Files changed:
+  - backend/src/api/routers/weight-logs.router.ts
+  - TASK-QUEUE.md
+- Commits: 3af7804, cc431e0
+- Build: npm run build ✓ (backend)
+- Notes: Added/validated progress endpoint and removed duplicate route handler.
+- Next task: W3 - Frontend API service wiring
+
+### Worker Slice
+- Time: 2026-03-02 10:02 CET
+- Task: W4 - Today page progress card
+- Status: IN_PROGRESS
+- Model: minimax-portal/MiniMax-M2.5
+- Worker slice: started

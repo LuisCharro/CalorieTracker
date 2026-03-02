@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Button, Card, CardHeader, CardBody, Alert } from '../../shared/components';
+import { Button, Card, CardHeader, CardBody, Alert, EmptyState } from '../../shared/components';
 import { Layout, Header, Navigation } from '../../shared/layout';
 import { useAuth } from '../../core/auth';
-import { logsService, goalsService } from '../../core/api/services';
+import { logsService, goalsService, weightLogsService } from '../../core/api/services';
+import type { WeightProgress } from '../../core/api/services/weight-logs.service';
 import { RouteGuard } from '../../core/auth/routeGuard';
 import type { FoodLog, Goal } from '../../core/contracts/types';
 import type { Nutrition } from '../../core/contracts/enums';
@@ -51,6 +52,9 @@ export default function TodayPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [recentFoods, setRecentFoods] = useState<RecentFood[]>([]);
   const [isLoadingRecent, setIsLoadingRecent] = useState(false);
+  const [weightProgress, setWeightProgress] = useState<WeightProgress | null>(null);
+  const [isLoadingWeight, setIsLoadingWeight] = useState(false);
+  const [weightError, setWeightError] = useState('');
 
   const loadTodayData = useCallback(async () => {
     if (!user?.id) return;
@@ -119,10 +123,28 @@ export default function TodayPage() {
     }
   }, [user?.id]);
 
+  // Fetch weight progress
+  const fetchWeightProgress = useCallback(async () => {
+    if (!user?.id) return;
+    
+    setIsLoadingWeight(true);
+    setWeightError('');
+    try {
+      const progress = await weightLogsService.getProgress(user.id);
+      setWeightProgress(progress);
+    } catch (err: any) {
+      console.error('Failed to fetch weight progress:', err);
+      setWeightError(err.message || 'Failed to load weight progress');
+    } finally {
+      setIsLoadingWeight(false);
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     loadTodayData();
     fetchRecentFoods();
-  }, [loadTodayData, fetchRecentFoods]);
+    fetchWeightProgress();
+  }, [loadTodayData, fetchRecentFoods, fetchWeightProgress]);
 
   const handleDeleteItem = async (logId: string) => {
     setDeletingId(logId);
@@ -251,6 +273,90 @@ export default function TodayPage() {
               </Button>
             </Link>
           </div>
+
+          {/* Weight Progress Card */}
+          {isLoadingWeight ? (
+            <Card className="mb-6">
+              <CardBody className="py-8 text-center">
+                <div className="animate-spin h-8 w-8 border-4 border-neutral-200 border-t-primary-500 rounded-full mx-auto" />
+                <p className="text-sm text-neutral-500 mt-2">Loading weight progress...</p>
+              </CardBody>
+            </Card>
+          ) : weightError ? (
+            <Card className="mb-6">
+              <CardBody className="py-6 text-center">
+                <p className="text-sm text-danger-600 mb-3">{weightError}</p>
+                <Button size="sm" onClick={fetchWeightProgress}>
+                  Retry
+                </Button>
+              </CardBody>
+            </Card>
+          ) : !weightProgress?.hasData ? (
+            <Card className="mb-6">
+              <CardBody className="py-6">
+                <EmptyState
+                  icon="⚖️"
+                  title="No weight data yet"
+                  description="Start tracking your weight to see your progress here"
+                  actionLabel="Log Weight"
+                  href="/settings/weight"
+                />
+              </CardBody>
+            </Card>
+          ) : (
+            <Card className="mb-6">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">⚖️</span>
+                  <h3 className="text-lg font-semibold text-neutral-900">Weight Progress</h3>
+                </div>
+              </CardHeader>
+              <CardBody>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                  <div>
+                    <div className="text-sm text-neutral-500">Start</div>
+                    <div className="text-xl font-bold text-neutral-900">
+                      {weightProgress.startWeight} kg
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-neutral-500">Current</div>
+                    <div className="text-xl font-bold text-primary-600">
+                      {weightProgress.currentWeight} kg
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-neutral-500">Change</div>
+                    <div className={`text-xl font-bold ${(weightProgress.changeKg || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}>
+                      {weightProgress.changeKg != null ? (weightProgress.changeKg >= 0 ? '+' : '') + weightProgress.changeKg.toFixed(1) : '—'} kg
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-neutral-500">Progress</div>
+                    <div className="text-xl font-bold text-neutral-900">
+                      {weightProgress.progressPercent != null ? Math.round(weightProgress.progressPercent) : 0}%
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-neutral-500">Goal</div>
+                    <div className="text-xl font-bold text-neutral-900 capitalize">
+                      {weightProgress.goalType?.replace('_', ' ') || '—'}
+                    </div>
+                  </div>
+                </div>
+                {weightProgress.progressPercent != null && (
+                  <div className="mt-4">
+                    <div className="h-2 bg-neutral-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary-500 transition-all duration-500"
+                        style={{ width: `${Math.min(weightProgress.progressPercent, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </CardBody>
+            </Card>
+          )}
 
           {/* Meals */}
           {(Object.keys(mealIcons) as MealType[]).map((mealType) => {
