@@ -37,6 +37,18 @@ export interface UpdateWeightLogRequest {
   notes?: string;
 }
 
+export interface WeightProgress {
+  hasData: boolean;
+  message: string;
+  startWeight: number | null;
+  currentWeight: number | null;
+  targetWeight: number | null;
+  goalType: string | null;
+  changeKg: number | null;
+  remainingKg: number | null;
+  progressPercent: number | null;
+}
+
 export interface WeightLogsQuery {
   userId: string;
   page?: number;
@@ -140,6 +152,23 @@ export class WeightLogsService {
     if (!response.success) {
       throw new Error('Failed to delete weight log');
     }
+  }
+
+  /**
+   * Get weight progress aggregation
+   * Returns: startWeight, currentWeight, targetWeight, goalType, changeKg, remainingKg, progressPercent
+   */
+  async getProgress(userId: string): Promise<WeightProgress> {
+    const response = await apiClient.get<ApiSuccessResponse<WeightProgress>>(
+      `${this.basePath}/progress`,
+      { userId }
+    );
+
+    if (!response.success) {
+      throw new Error('Failed to fetch weight progress');
+    }
+
+    return response.data;
   }
 }
 
