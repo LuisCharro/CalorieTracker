@@ -74,6 +74,127 @@ router.get('/', async (req, res) => {
 });
 
 /**
+ * GET /api/weight-logs/progress
+ * Get aggregated weight progress data for a user
+ * Returns: startWeight, currentWeight, targetWeight, goalType, changeKg, remainingKg, progressPercent
+ */
+router.get('/progress', async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'validation_error',
+        message: 'userId is required',
+      },
+    });
+  }
+
+  // Get user's weight goal and target from profile
+  const userResult = await query(
+    `SELECT weight_goal, target_weight_kg FROM users WHERE id = $1`,
+    [userId]
+  );
+
+  const goalType = userResult.rows[0]?.weight_goal || null;
+  const targetWeight = userResult.rows[0]?.target_weight_kg 
+    ? parseFloat(userResult.rows[0].target_weight_kg) 
+    : null;
+
+  // Get earliest (start) and latest (current) weight
+  const weightRangeResult = await query(
+    `SELECT 
+       MIN(weight_value) as start_weight,
+       MAX(weight_value) as max_weight,
+       (SELECT weight_value FROM weight_logs 
+        WHERE user_id = $1 ORDER BY logged_at DESC LIMIT 1) as current_weight,
+       (SELECT weight_value FROM weight_logs 
+        WHERE user_id = $1 ORDER BY logged_at ASC LIMIT 1) as first_weight
+     FROM weight_logs
+     WHERE user_id = $1`,
+    [userId]
+  );
+
+  const hasWeightLogs = weightRangeResult.rows.length > 0 && weightRangeResult.rows[0].start_weight !== null;
+
+  if (!hasWeightLogs) {
+    return res.json({
+      success: true,
+      data: {
+        startWeight: null,
+        currentWeight: null,
+        targetWeight,
+        goalType,
+        changeKg: null,
+        remainingKg: null,
+        progressPercent: null,
+        hasWeightLogs: false,
+        hasTarget: targetWeight !== null,
+      },
+      meta: {
+        timestamp: new Date().toISOString(),
+      },
+    });
+  }
+
+  const startWeight = parseFloat(weightRangeResult.rows[0].first_weight);
+  const currentWeight = parseFloat(weightRangeResult.rows[0].current_weight);
+  const changeKg = Math.round((currentWeight - startWeight) * 10) / 10;
+
+  // Calculate remaining and progress
+  let remainingKg: number | null = null;
+  let progressPercent: number | null = null;
+
+  if (targetWeight !== null) {
+    const totalJourney = startWeight - targetWeight;
+    
+    if (totalJourney !== 0) {
+      // Calculate remaining based on goal direction
+      if (goalType === 'lose') {
+        remainingKg = Math.round((currentWeight - targetWeight) * 10) / 10;
+        // Progress: how much of the journey completed
+        // For losing: if start > target, progress is how much lost vs total to lose
+        progressPercent = Math.round(((startWeight - currentWeight) / totalJourney) * 100 * 10) / 10;
+      } else if (goalType === 'gain') {
+        remainingKg = Math.round((targetWeight - currentWeight) * 10) / 10;
+        // For gaining: if start < target, progress is how much gained vs total to gain
+        progressPercent = Math.round(((currentWeight - startWeight) / totalJourney) * 100 * 10) / 10;
+      } else {
+        // maintain - no remaining calculation needed
+        remainingKg = 0;
+        progressPercent = currentWeight === targetWeight ? 100 : 0;
+      }
+    } else {
+      // Start equals target - divide by zero case
+      remainingKg = 0;
+      progressPercent = currentWeight === targetWeight ? 100 : 0;
+    }
+
+    // Clamp progress to 0-100 range
+    progressPercent = Math.max(0, Math.min(100, progressPercent));
+  }
+
+  res.json({
+    success: true,
+    data: {
+      startWeight,
+      currentWeight,
+      targetWeight,
+      goalType,
+      changeKg,
+      remainingKg,
+      progressPercent,
+      hasWeightLogs: true,
+      hasTarget: targetWeight !== null,
+    },
+    meta: {
+      timestamp: new Date().toISOString(),
+    },
+  });
+});
+
+/**
  * GET /api/weight-logs/latest
  * Get the most recent weight entry for a user
  */

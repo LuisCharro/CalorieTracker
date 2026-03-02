@@ -1,7 +1,7 @@
 {
   "repo": "/Users/luis/Repos/CalorieTracker",
-  "plan": "/Users/luis/Repos/CalorieTracker/plan/07_weight_progress_feature_plan.md",
-  "state": "completed",
+  "plan": "/Users/luis/Repos/CalorieTracker/TASK-QUEUE.md",
+  "state": "running",
   "planner_model": "openai-codex/gpt-5.3-codex",
   "worker_model": "minimax-portal/MiniMax-M2.5",
   "planner_fallback_model": "minimax-portal/MiniMax-M2.5",
@@ -10,9 +10,9 @@
   "planner_cron": "0 */2 * * *",
   "worker_cron": "*/20 * * * *",
   "orchestrator_cron": "*/10 * * * *",
-  "orchestrator_job_id": "73ae81cd-cdd4-4a8a-b296-cfab972259a3",
+  "orchestrator_job_id": "838c4b2c-f3f4-4d7a-be2a-8f8f9ecf4a9f",
   "dev_recovery_enabled": "false",
   "dev_recovery_health_url": "http://localhost:3000/",
   "dev_recovery_commands": "./scripts/build.sh rebuild && ./scripts/dev.sh start",
-  "updated_at": "2026-03-02 08:43:43 CET"
+  "updated_at": "2026-03-02 09:30:21 CET"
 }
