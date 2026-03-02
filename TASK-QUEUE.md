@@ -28,15 +28,20 @@ Status: COMPLETED
 - Commit: 2afdd74
 
 ### W4 — Today page progress card
-Status: IN-PROGRESS
+Status: COMPLETED
 - Add Weight Progress card on /today (loading/error/empty states)
 - Transcript-independent and non-blocking
 - Build: npm run build (frontend)
+- Commit: 19efe4b
 
 ### W5 — Weight logging UI improvements
-Status: PENDING
-- Add/edit/delete weight entries flow and immediate progress refresh
+Status: COMPLETED
+- ✅ Add new weight entry from the Today page (Quick Log Weight button + modal)
+- ✅ Edit existing weight entries (edit modal on Settings/Weight page)
+- ✅ Delete weight entries with confirmation (modal instead of browser confirm())
+- ✅ Immediate refresh of progress after any change
 - Build: npm run build (frontend)
+- Commit: 0635df4
 
 ### W6 — Validation pass
 Status: PENDING
