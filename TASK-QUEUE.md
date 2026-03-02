@@ -44,9 +44,10 @@ Status: COMPLETED
 - Commit: 0635df4
 
 ### W6 — Validation pass
-Status: PENDING
+Status: PENDING (MANUAL - requires Luis)
 - End-to-end manual check: signup/onboarding -> log weight -> progress updates
 - Update RUNLOG.md with evidence
+- NOTE: This task requires manual testing by Luis, not autonomous execution
 
 ## Rules
 - Do not mark complete without build passing for touched app.

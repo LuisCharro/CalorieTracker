@@ -1,7 +1,7 @@
 {
   "repo": "/Users/luis/Repos/CalorieTracker",
   "plan": "/Users/luis/Repos/CalorieTracker/TASK-QUEUE.md",
-  "state": "running",
+  "state": "completed",
   "planner_model": "openai-codex/gpt-5.3-codex",
   "worker_model": "minimax-portal/MiniMax-M2.5",
   "planner_fallback_model": "minimax-portal/MiniMax-M2.5",
