@@ -290,6 +290,135 @@ router.patch('/:id', async (req, res) => {
 });
 
 /**
+ * GET /api/weight-logs/progress
+ * Get weight progress aggregation: startWeight, currentWeight, targetWeight, goalType, changeKg, remainingKg, progressPercent
+ */
+router.get('/progress', async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'validation_error',
+        message: 'userId is required',
+      },
+    });
+  }
+
+  try {
+    // Get earliest and latest weight logs
+    const weightLogsResult = await query(
+      `SELECT 
+         MIN(weight_value) as start_weight,
+         MAX(weight_value) as current_weight,
+         COUNT(*) as log_count
+       FROM weight_logs
+       WHERE user_id = $1`,
+      [userId]
+    );
+
+    // Get user's target weight
+    const userResult = await query(
+      `SELECT target_weight_kg FROM users WHERE id = $1`,
+      [userId]
+    );
+
+    // Get active goal type
+    const goalResult = await query(
+      `SELECT goal_type FROM goals WHERE user_id = $1 AND is_active = true LIMIT 1`,
+      [userId]
+    );
+
+    const startWeight = parseFloat(weightLogsResult.rows[0]?.start_weight);
+    const currentWeight = parseFloat(weightLogsResult.rows[0]?.current_weight);
+    const logCount = parseInt(weightLogsResult.rows[0]?.log_count, 10);
+    const targetWeight = userResult.rows[0]?.target_weight_kg 
+      ? parseFloat(userResult.rows[0].target_weight_kg) 
+      : null;
+    const goalType = goalResult.rows[0]?.goal_type || null;
+
+    // Edge case: no weight logs
+    if (!startWeight || !currentWeight || logCount === 0) {
+      return res.json({
+        success: true,
+        data: {
+          hasData: false,
+          message: 'No weight logs found',
+          startWeight: null,
+          currentWeight: null,
+          targetWeight,
+          goalType,
+          changeKg: null,
+          remainingKg: null,
+          progressPercent: null,
+        },
+      });
+    }
+
+    // Calculate change
+    const changeKg = Math.round((currentWeight - startWeight) * 10) / 10;
+
+    // Calculate remaining and progress
+    let remainingKg: number | null = null;
+    let progressPercent: number | null = null;
+
+    if (targetWeight) {
+      const totalJourney = Math.abs(targetWeight - startWeight);
+      
+      if (totalJourney > 0) {
+        // Calculate remaining based on goal type
+        if (goalType === 'lose') {
+          remainingKg = Math.round((currentWeight - targetWeight) * 10) / 10;
+          // Progress: how much of the journey completed
+          const completed = startWeight - currentWeight;
+          progressPercent = Math.round((completed / totalJourney) * 100);
+        } else if (goalType === 'gain') {
+          remainingKg = Math.round((targetWeight - currentWeight) * 10) / 10;
+          const completed = currentWeight - startWeight;
+          progressPercent = Math.round((completed / totalJourney) * 100);
+        } else {
+          // maintain - progress is inverse of distance from target
+          const distance = Math.abs(currentWeight - targetWeight);
+          progressPercent = Math.round(Math.max(0, 100 - (distance / totalJourney * 100)));
+        }
+        
+        // Clamp progress to 0-100
+        progressPercent = Math.max(0, Math.min(100, progressPercent));
+      } else {
+        // start and target are equal - no journey to measure
+        remainingKg = 0;
+        progressPercent = currentWeight === targetWeight ? 100 : 0;
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        hasData: true,
+        startWeight,
+        currentWeight,
+        targetWeight,
+        goalType,
+        changeKg,
+        remainingKg,
+        progressPercent,
+        logCount,
+      },
+    });
+  } catch (error) {
+    console.error('Error calculating weight progress:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'internal_error',
+        message: 'Failed to calculate weight progress',
+      },
+    });
+  }
+});
+
+/**
  * DELETE /api/weight-logs/:id
  * Delete a weight log entry
  */
