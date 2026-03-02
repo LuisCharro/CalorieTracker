@@ -20,12 +20,15 @@ Status: COMPLETED
 - Commit: 3af7804
 
 ### W3 — Frontend API service wiring
-Status: PENDING
-- Add client service methods for weight logs and progress summary
-- Build: npm run build (frontend)
+Status: COMPLETED
+- ✅ Added getProgress() method to weight-logs.service.ts (calls GET /api/weight-logs/progress)
+- ✅ Exported WeightProgress type from services/index.ts
+- ✅ Existing methods (getAll, getLatest, create, update, delete) are properly exported
+- Build: npm run build ✓
+- Commit: 2afdd74
 
 ### W4 — Today page progress card
-Status: PENDING
+Status: IN-PROGRESS
 - Add Weight Progress card on /today (loading/error/empty states)
 - Transcript-independent and non-blocking
 - Build: npm run build (frontend)
