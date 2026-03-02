@@ -110,6 +110,73 @@ router.get('/latest', async (req, res) => {
 });
 
 /**
+ * GET /api/water-logs/progress
+ * Get daily water intake summaries for a date range
+ * Used for progress charts
+ */
+router.get('/progress', async (req, res) => {
+  const { userId, startDate, endDate } = req.query;
+
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'validation_error',
+        message: 'userId is required',
+      },
+    });
+  }
+
+  const start = startDate 
+    ? new Date(startDate as string).toISOString().split('T')[0]
+    : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const end = endDate 
+    ? new Date(endDate as string).toISOString().split('T')[0]
+    : new Date().toISOString().split('T')[0];
+
+  try {
+    const result = await query(
+      `SELECT 
+        DATE(logged_at) as date,
+        SUM(amount_ml) as total_ml,
+        COUNT(*) as entry_count
+       FROM water_logs
+       WHERE user_id = $1
+         AND DATE(logged_at) >= $2
+         AND DATE(logged_at) <= $3
+       GROUP BY DATE(logged_at)
+       ORDER BY date ASC`,
+      [userId, start, end]
+    );
+
+    const summaries = result.rows.map(row => ({
+      date: row.date instanceof Date ? row.date.toISOString().split('T')[0] : String(row.date).split('T')[0],
+      totalMl: parseInt(row.total_ml, 10) || 0,
+      entryCount: parseInt(row.entry_count, 10) || 0,
+    }));
+
+    res.json({
+      success: true,
+      data: summaries,
+      meta: {
+        startDate: start,
+        endDate: end,
+        dayCount: summaries.length,
+      },
+    });
+  } catch (error) {
+    console.error('Error getting water progress:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'internal_error',
+        message: 'Failed to get water progress',
+      },
+    });
+  }
+});
+
+/**
  * GET /api/water-logs/:id
  * Get a single water log entry by ID
  */

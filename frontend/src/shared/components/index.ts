@@ -27,3 +27,9 @@ export { EmptyState } from './EmptyState';
 
 export { WeightTrendChart } from './WeightTrendChart';
 export type { WeightTrendChartProps, TimeRange } from './WeightTrendChart';
+
+export { CalorieChart } from './CalorieChart';
+export type { CalorieChartProps, TimeRange as CalorieTimeRange } from './CalorieChart';
+
+export { WaterChart } from './WaterChart';
+export type { WaterChartProps, TimeRange as WaterTimeRange } from './WaterChart';

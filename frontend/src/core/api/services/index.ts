@@ -9,4 +9,7 @@ export { default as goalsService, GoalsService } from './goals.service';
 export { default as gdprService, GdprService } from './gdpr.service';
 export { default as settingsService, SettingsService } from './settings.service';
 export { default as weightLogsService, WeightLogsService } from './weight-logs.service';
+export { default as waterLogsService, WaterLogsService } from './water-logs.service';
 export type { WeightLog, CreateWeightLogRequest, UpdateWeightLogRequest, WeightLogsQuery, WeightProgress } from './weight-logs.service';
+export type { WaterLog, CreateWaterLogRequest, WaterProgress } from './water-logs.service';
+export type { DailySummary } from './logs.service';

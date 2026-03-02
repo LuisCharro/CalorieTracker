@@ -251,6 +251,80 @@ router.get('/today', async (req, res) => {
 });
 
 /**
+ * GET /api/logs/daily-summary
+ * Get daily calorie and macro summaries for a date range
+ * Used for progress charts
+ */
+router.get('/daily-summary', async (req, res) => {
+  const { userId, startDate, endDate } = req.query;
+
+  if (!userId || typeof userId !== 'string') {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'validation_error',
+        message: 'userId is required',
+      },
+    });
+  }
+
+  const start = startDate 
+    ? new Date(startDate as string).toISOString().split('T')[0]
+    : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const end = endDate 
+    ? new Date(endDate as string).toISOString().split('T')[0]
+    : new Date().toISOString().split('T')[0];
+
+  try {
+    const result = await query(
+      `SELECT 
+        DATE(logged_at) as date,
+        SUM((nutrition->>'calories')::NUMERIC) as total_calories,
+        SUM((nutrition->>'protein')::NUMERIC) as total_protein,
+        SUM((nutrition->>'carbohydrates')::NUMERIC) as total_carbs,
+        SUM((nutrition->>'fat')::NUMERIC) as total_fat,
+        COUNT(*) as item_count
+       FROM food_logs
+       WHERE user_id = $1
+         AND DATE(logged_at) >= $2
+         AND DATE(logged_at) <= $3
+         AND is_deleted = FALSE
+       GROUP BY DATE(logged_at)
+       ORDER BY date ASC`,
+      [userId, start, end]
+    );
+
+    const summaries = result.rows.map(row => ({
+      date: row.date instanceof Date ? row.date.toISOString().split('T')[0] : String(row.date).split('T')[0],
+      totalCalories: parseFloat(row.total_calories) || 0,
+      totalProtein: parseFloat(row.total_protein) || 0,
+      totalCarbs: parseFloat(row.total_carbs) || 0,
+      totalFat: parseFloat(row.total_fat) || 0,
+      itemCount: parseInt(row.item_count, 10) || 0,
+    }));
+
+    res.json({
+      success: true,
+      data: summaries,
+      meta: {
+        startDate: start,
+        endDate: end,
+        dayCount: summaries.length,
+      },
+    });
+  } catch (error) {
+    console.error('Error getting daily summary:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'internal_error',
+        message: 'Failed to get daily summary',
+      },
+    });
+  }
+});
+
+/**
  * GET /api/logs/meal/:mealType
  * Get all items for a specific meal type on a given date
  */

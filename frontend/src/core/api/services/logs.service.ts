@@ -40,6 +40,15 @@ export type TodayResponse = ApiSuccessResponse<TodayLogsResponse> | ApiErrorResp
 export type PaginatedLogsResponse = PaginatedResponse<FoodLog>;
 export type BatchCreateResponse = ApiSuccessResponse<BatchCreateFoodLogResponse> | ApiErrorResponse;
 
+export interface DailySummary {
+  date: string;
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  itemCount: number;
+}
+
 export class LogsService {
   private readonly basePath = '/api/logs';
 
@@ -316,6 +325,25 @@ export class LogsService {
       // Re-throw non-network errors
       throw error;
     }
+  }
+
+  /**
+   * Get daily calorie and macro summaries for progress charts
+   */
+  async getDailySummary(userId: string, startDate?: string, endDate?: string): Promise<DailySummary[]> {
+    const params = new URLSearchParams({ userId });
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+
+    const response = await apiClient.get<ApiSuccessResponse<DailySummary[]>>(
+      `${this.basePath}/daily-summary?${params.toString()}`
+    );
+
+    if (!response.success) {
+      throw new Error('Failed to fetch daily summary');
+    }
+
+    return response.data;
   }
 }
 
