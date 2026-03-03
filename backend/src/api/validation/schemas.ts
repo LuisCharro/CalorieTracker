@@ -232,6 +232,7 @@ export const foodLogsQuerySchema = paginationSchema
   .merge(dateRangeSchema)
   .merge(
     z.object({
+      userId: z.string().optional(),
       mealType: z.nativeEnum(MealType).optional(),
     })
   );

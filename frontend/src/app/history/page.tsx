@@ -55,7 +55,7 @@ export default function HistoryPage() {
     try {
       const response = await logsService.getLogs({
         userId: user.id,
-        pageSize: 200,
+        pageSize: 100,
       });
 
       if (response.success) {
