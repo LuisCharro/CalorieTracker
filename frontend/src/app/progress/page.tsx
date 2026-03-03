@@ -145,15 +145,15 @@ export default function ProgressPage() {
           )}
 
           {/* Tab Navigation */}
-          <div className="flex overflow-x-auto gap-2 mb-6 pb-2">
+          <div className="flex overflow-x-auto gap-2 mb-6 pb-2 px-1">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
+                className={`px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
                   activeTab === tab.id
-                    ? 'bg-primary-600 text-white'
-                    : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-600/30'
+                    : 'bg-white text-neutral-600 hover:bg-neutral-50 border border-neutral-200'
                 }`}
               >
                 {tab.label}
@@ -172,8 +172,8 @@ export default function ProgressPage() {
             <>
               {/* Overview Tab - Combined Calories + Weight Chart */}
               {activeTab === 'overview' && (
-                <Card>
-                  <CardHeader>
+                <Card className="shadow-xl shadow-neutral-200/50 border-0">
+                  <CardHeader className="border-l-4 border-l-primary-500 border-b border-neutral-100 pb-4">
                     <h2 className="text-lg font-semibold">Overview: Calories & Weight</h2>
                   </CardHeader>
                   <CardBody>
@@ -217,13 +217,15 @@ export default function ProgressPage() {
                         </div>
                       </>
                     ) : (
-                      <EmptyState
-                        icon="📊"
-                        title="No data yet"
-                        description="Start logging food and weight to see your overview"
-                        actionLabel="Log Food"
-                        onAction={() => {}}
-                      />
+                      <div className="py-8">
+                        <EmptyState
+                          icon="📊"
+                          title="No data yet"
+                          description="Start logging food and weight to see your overview"
+                          actionLabel="Log Food"
+                          onAction={() => {}}
+                        />
+                      </div>
                     )}
                   </CardBody>
                 </Card>
@@ -232,7 +234,7 @@ export default function ProgressPage() {
               {/* Calories Tab */}
               {activeTab === 'calories' && (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="border-l-4 border-l-primary-500 border-b border-neutral-100 pb-4">
                     <h2 className="text-lg font-semibold">Calorie Intake</h2>
                   </CardHeader>
                   <CardBody>
@@ -272,7 +274,7 @@ export default function ProgressPage() {
               {/* Weight Tab */}
               {activeTab === 'weight' && (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="border-l-4 border-l-primary-500 border-b border-neutral-100 pb-4">
                     <h2 className="text-lg font-semibold">Weight Progress</h2>
                   </CardHeader>
                   <CardBody>
@@ -309,13 +311,15 @@ export default function ProgressPage() {
                         </div>
                       </>
                     ) : (
-                      <EmptyState
-                        icon="⚖️"
-                        title="No weight data"
-                        description="Start logging your weight to see progress"
-                        actionLabel="Log Weight"
-                        onAction={() => {}}
-                      />
+                      <div className="py-8">
+                        <EmptyState
+                          icon="⚖️"
+                          title="No weight data"
+                          description="Start logging your weight to see progress"
+                          actionLabel="Log Weight"
+                          onAction={() => {}}
+                        />
+                      </div>
                     )}
                   </CardBody>
                 </Card>
@@ -324,7 +328,7 @@ export default function ProgressPage() {
               {/* Macros Tab */}
               {activeTab === 'macros' && (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="border-l-4 border-l-primary-500 border-b border-neutral-100 pb-4">
                     <h2 className="text-lg font-semibold">Macro Breakdown</h2>
                   </CardHeader>
                   <CardBody>
@@ -372,13 +376,15 @@ export default function ProgressPage() {
                         </div>
                       </>
                     ) : (
-                      <EmptyState
-                        icon="🥗"
-                        title="No macro data"
-                        description="Start logging food to see macro breakdown"
-                        actionLabel="Log Food"
-                        onAction={() => {}}
-                      />
+                      <div className="py-8">
+                        <EmptyState
+                          icon="🥗"
+                          title="No macro data"
+                          description="Start logging food to see macro breakdown"
+                          actionLabel="Log Food"
+                          onAction={() => {}}
+                        />
+                      </div>
                     )}
                   </CardBody>
                 </Card>
@@ -387,7 +393,7 @@ export default function ProgressPage() {
               {/* Water Tab */}
               {activeTab === 'water' && (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="border-l-4 border-l-primary-500 border-b border-neutral-100 pb-4">
                     <h2 className="text-lg font-semibold">Water Intake</h2>
                   </CardHeader>
                   <CardBody>
@@ -424,13 +430,15 @@ export default function ProgressPage() {
                         </div>
                       </>
                     ) : (
-                      <EmptyState
-                        icon="💧"
-                        title="No water data"
-                        description="Start logging water intake to see progress"
-                        actionLabel="Log Water"
-                        onAction={() => {}}
-                      />
+                      <div className="py-8">
+                        <EmptyState
+                          icon="💧"
+                          title="No water data"
+                          description="Start logging water intake to see progress"
+                          actionLabel="Log Water"
+                          onAction={() => {}}
+                        />
+                      </div>
                     )}
                   </CardBody>
                 </Card>

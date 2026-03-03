@@ -369,55 +369,60 @@ export default function TodayPage() {
               </CardBody>
             </Card>
           ) : (
-            <Card className="mb-6">
-              <CardHeader>
+            <Card className="mb-6 shadow-lg shadow-primary-500/5 border-0">
+              <CardHeader className="pb-2">
                 <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">⚖️</span>
-                    <h3 className="text-lg font-semibold text-neutral-900">Weight Progress</h3>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+                      <span className="text-white text-lg">⚖️</span>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-neutral-900">Weight Progress</h3>
+                      <p className="text-xs text-neutral-500">Track your journey</p>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setShowWeightChart(!showWeightChart)}
-                      className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                      className="text-sm text-primary-600 hover:text-primary-700 font-medium px-3 py-1.5 rounded-lg hover:bg-primary-50 transition-colors"
                     >
-                      {showWeightChart ? '▲ Hide Chart' : '▼ Show Chart'}
+                      {showWeightChart ? '📉 Hide' : '📈 Chart'}
                     </button>
                     <Button size="sm" onClick={openQuickWeightModal}>
-                      + Log Weight
+                      + Log
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardBody>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-                  <div>
-                    <div className="text-sm text-neutral-500">Start</div>
-                    <div className="text-xl font-bold text-neutral-900">
-                      {weightProgress.startWeight} kg
+              <CardBody className="pt-4">
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  <div className="bg-neutral-50 rounded-xl p-3 text-center">
+                    <div className="text-xs text-neutral-500 font-medium uppercase tracking-wide">Start</div>
+                    <div className="text-xl font-bold text-neutral-900 mt-1">
+                      {weightProgress.startWeight} <span className="text-sm font-normal">kg</span>
                     </div>
                   </div>
-                  <div>
-                    <div className="text-sm text-neutral-500">Current</div>
-                    <div className="text-xl font-bold text-primary-600">
-                      {weightProgress.currentWeight} kg
+                  <div className="bg-primary-50 rounded-xl p-3 text-center border border-primary-100">
+                    <div className="text-xs text-primary-600 font-medium uppercase tracking-wide">Current</div>
+                    <div className="text-xl font-bold text-primary-700 mt-1">
+                      {weightProgress.currentWeight} <span className="text-sm font-normal text-primary-500">kg</span>
                     </div>
                   </div>
-                  <div>
-                    <div className="text-sm text-neutral-500">Change</div>
-                    <div className={`text-xl font-bold ${(weightProgress.changeKg || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}>
-                      {weightProgress.changeKg != null ? (weightProgress.changeKg >= 0 ? '+' : '') + weightProgress.changeKg.toFixed(1) : '—'} kg
+                  <div className={`rounded-xl p-3 text-center ${(weightProgress.changeKg || 0) >= 0 ? 'bg-success-50 border border-success-100' : 'bg-danger-50 border border-danger-100'}`}>
+                    <div className={`text-xs font-medium uppercase tracking-wide ${(weightProgress.changeKg || 0) >= 0 ? 'text-success-600' : 'text-danger-600'}`}>Change</div>
+                    <div className={`text-xl font-bold mt-1 ${(weightProgress.changeKg || 0) >= 0 ? 'text-success-700' : 'text-danger-700'}`}>
+                      {weightProgress.changeKg != null ? (weightProgress.changeKg >= 0 ? '+' : '') + weightProgress.changeKg.toFixed(1) : '—'} <span className="text-sm font-normal">kg</span>
                     </div>
                   </div>
-                  <div>
-                    <div className="text-sm text-neutral-500">Progress</div>
-                    <div className="text-xl font-bold text-neutral-900">
+                  <div className="bg-neutral-50 rounded-xl p-3 text-center">
+                    <div className="text-xs text-neutral-500 font-medium uppercase tracking-wide">Progress</div>
+                    <div className="text-xl font-bold text-neutral-900 mt-1">
                       {weightProgress.progressPercent != null ? Math.round(weightProgress.progressPercent) : 0}%
                     </div>
                   </div>
-                  <div>
-                    <div className="text-sm text-neutral-500">Goal</div>
-                    <div className="text-xl font-bold text-neutral-900 capitalize">
+                  <div className="bg-neutral-50 rounded-xl p-3 text-center">
+                    <div className="text-xs text-neutral-500 font-medium uppercase tracking-wide">Goal</div>
+                    <div className="text-xl font-bold text-neutral-900 mt-1 capitalize">
                       {weightProgress.goalType?.replace('_', ' ') || '—'}
                     </div>
                   </div>
@@ -454,8 +459,8 @@ export default function TodayPage() {
             const meal = todayLogs[mealType];
 
             return (
-              <Card key={mealType} className="mb-4">
-                <CardHeader>
+              <Card key={mealType} className="mb-4 shadow-md shadow-neutral-200/50 border-0 rounded-2xl">
+                <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/50 to-white">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">{mealIcons[mealType]}</span>
@@ -518,7 +523,7 @@ export default function TodayPage() {
                       )}
 
                       <Link href="/log">
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" className="hover:bg-primary-50 hover:border-primary-300 hover:text-primary-700 transition-all">
                           + Add Food
                         </Button>
                       </Link>
@@ -589,7 +594,7 @@ export default function TodayPage() {
                         </div>
                       ))}
                       <Link href="/log" className="block mt-3">
-                        <Button size="sm" variant="outline" isFullWidth>
+                        <Button size="sm" variant="outline" isFullWidth className="hover:bg-primary-50 hover:border-primary-300 hover:text-primary-700 transition-all">
                           + Add More to {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
                         </Button>
                       </Link>
