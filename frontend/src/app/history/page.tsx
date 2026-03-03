@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button, Card, CardHeader, CardBody, Input } from '../../shared/components';
 import { Layout, Header, Navigation } from '../../shared/layout';
 import { useAuth } from '../../core/auth';
 import { logsService } from '../../core/api/services';
 import { RouteGuard } from '../../core/auth/routeGuard';
 import type { FoodLog } from '../../core/contracts/types';
+
+type QuickFilter = 'all' | 'today' | 'yesterday' | 'week';
 
 export default function HistoryPage() {
   const { user } = useAuth();
@@ -15,6 +17,20 @@ export default function HistoryPage() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>('all');
+
+  // Get today's date in local timezone
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const yesterday = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.toISOString().split('T')[0];
+  }, []);
+  const weekAgo = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split('T')[0];
+  }, []);
 
   useEffect(() => {
     loadLogs();
@@ -25,6 +41,13 @@ export default function HistoryPage() {
     setSelectedDate('');
   }, []);
 
+  // Reset quick filter when date is manually selected
+  useEffect(() => {
+    if (selectedDate) {
+      setQuickFilter('all');
+    }
+  }, [selectedDate]);
+
   const loadLogs = async () => {
     if (!user?.id) return;
 
@@ -32,11 +55,21 @@ export default function HistoryPage() {
     try {
       const response = await logsService.getLogs({
         userId: user.id,
-        pageSize: 100,
+        pageSize: 200,
       });
 
       if (response.success) {
-        setLogs(response.data);
+        // Transform snake_case from API to camelCase
+        const transformedLogs = (response.data || []).map((log: any) => ({
+          ...log,
+          loggedAt: log.logged_at || log.loggedAt,
+          foodName: log.food_name || log.foodName,
+          brandName: log.brand_name || log.brandName,
+          mealType: log.meal_type || log.mealType,
+          createdAt: log.created_at || log.createdAt,
+          updatedAt: log.updated_at || log.updatedAt,
+        }));
+        setLogs(transformedLogs);
       }
     } catch (err: any) {
       console.error('Failed to load logs:', err);
@@ -46,23 +79,53 @@ export default function HistoryPage() {
     }
   };
 
-  const filteredLogs = logs.filter(log => {
-    if (!log.loggedAt) return false; // Skip logs without loggedAt
+  const getQuickFilterDates = (): { start?: string; end?: string } => {
+    switch (quickFilter) {
+      case 'today':
+        return { start: today };
+      case 'yesterday':
+        return { start: yesterday, end: yesterday };
+      case 'week':
+        return { start: weekAgo };
+      default:
+        return {};
+    }
+  };
 
-    const matchesSearch = searchTerm === '' ||
-      log.foodName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (log.brandName && log.brandName.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredLogs = useMemo(() => {
+    const quickDates = getQuickFilterDates();
+    
+    return logs.filter(log => {
+      if (!log.loggedAt) return false;
 
-    const matchesDate = selectedDate === '' ||
-      log.loggedAt.startsWith(selectedDate);
+      const logDate = log.loggedAt.split('T')[0];
 
-    return matchesSearch && matchesDate;
-  });
+      // Search filter
+      const matchesSearch = !searchTerm ||
+        (log.foodName?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (log.brandName?.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      // Quick filter (today/yesterday/week)
+      let matchesQuick = true;
+      if (quickFilter === 'today') {
+        matchesQuick = logDate === today;
+      } else if (quickFilter === 'yesterday') {
+        matchesQuick = logDate === yesterday;
+      } else if (quickFilter === 'week') {
+        matchesQuick = logDate >= weekAgo;
+      }
+
+      // Manual date filter
+      const matchesDate = !selectedDate || logDate.startsWith(selectedDate);
+
+      return matchesSearch && matchesQuick && matchesDate;
+    });
+  }, [logs, searchTerm, selectedDate, quickFilter, today, yesterday, weekAgo]);
 
   const groupLogsByDate = (logs: FoodLog[]) => {
     const groups: Record<string, FoodLog[]> = {};
     logs.forEach(log => {
-      if (!log.loggedAt) return; // Skip logs without loggedAt
+      if (!log.loggedAt) return;
       const date = log.loggedAt.split('T')[0];
       if (!groups[date]) {
         groups[date] = [];
@@ -74,6 +137,22 @@ export default function HistoryPage() {
 
   const groupedLogs = groupLogsByDate(filteredLogs);
   const sortedDates = Object.keys(groupedLogs).sort((a, b) => b.localeCompare(a));
+
+  const getDayLabel = (dateStr: string): string => {
+    if (dateStr === today) return 'Today';
+    if (dateStr === yesterday) return 'Yesterday';
+    
+    const date = new Date(dateStr + 'T12:00:00');
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
+
+  const getTotalCaloriesForDate = (dateLogs: FoodLog[]): number => {
+    return dateLogs.reduce((sum, log) => sum + (log.nutrition?.calories || 0), 0);
+  };
 
   if (isLoading) {
     return (
@@ -97,7 +176,53 @@ export default function HistoryPage() {
             </div>
           )}
 
-          {/* Search and Filters */}
+          {/* Quick Filters */}
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => { setQuickFilter('all'); setSelectedDate(''); }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  quickFilter === 'all' && !selectedDate
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => { setQuickFilter('today'); setSelectedDate(''); }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  quickFilter === 'today'
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                Today
+              </button>
+              <button
+                onClick={() => { setQuickFilter('yesterday'); setSelectedDate(''); }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  quickFilter === 'yesterday'
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                Yesterday
+              </button>
+              <button
+                onClick={() => { setQuickFilter('week'); setSelectedDate(''); }}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  quickFilter === 'week'
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                This Week
+              </button>
+            </div>
+          </div>
+
+          {/* Search and Date Filter */}
           <Card className="shadow-md shadow-neutral-200/50 border-0 rounded-2xl mb-6">
             <CardBody>
               <div className="space-y-4">
@@ -109,30 +234,41 @@ export default function HistoryPage() {
                   isFullWidth
                 />
                 
-                <Input
-                  type="date"
-                  label="Filter by date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  isFullWidth
-                />
-
-                {(searchTerm || selectedDate) && (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSearchTerm('');
-                      setSelectedDate('');
-                    }}
-                    size="sm"
-                    className="hover:bg-neutral-100 hover:border-neutral-400 transition-colors duration-200"
-                  >
-                    Clear Filters
-                  </Button>
-                )}
+                <div className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <Input
+                      type="date"
+                      label="Or pick a specific date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      isFullWidth
+                    />
+                  </div>
+                  {(searchTerm || selectedDate || quickFilter !== 'all') && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setSearchTerm('');
+                        setSelectedDate('');
+                        setQuickFilter('all');
+                      }}
+                      size="sm"
+                      className="mt-5 hover:bg-neutral-100 hover:border-neutral-400 transition-colors duration-200"
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardBody>
           </Card>
+
+          {/* Results count */}
+          {filteredLogs.length > 0 && (
+            <div className="mb-4 text-sm text-neutral-600">
+              Showing {filteredLogs.length} log{filteredLogs.length !== 1 ? 's' : ''}
+            </div>
+          )}
 
           {/* History List */}
           {sortedDates.length === 0 ? (
@@ -162,13 +298,14 @@ export default function HistoryPage() {
             <div className="space-y-6">
               {sortedDates.map((date) => (
                 <div key={date}>
-                  <h3 className="text-sm font-semibold text-neutral-600 mb-3">
-                    {new Date(date).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-neutral-600">
+                      {getDayLabel(date)}
+                    </h3>
+                    <span className="text-sm font-medium text-primary-600">
+                      {getTotalCaloriesForDate(groupedLogs[date])} cal
+                    </span>
+                  </div>
                   <div className="space-y-3">
                     {groupedLogs[date].map((log) => (
                       <Card 
@@ -192,16 +329,16 @@ export default function HistoryPage() {
                                   {log.quantity} {log.unit}
                                 </span>
                                 <span>
-                                  {new Date(log.loggedAt).toLocaleTimeString('en-US', {
+                                  {log.loggedAt ? new Date(log.loggedAt).toLocaleTimeString('en-US', {
                                     hour: '2-digit',
                                     minute: '2-digit',
-                                  })}
+                                  }) : ''}
                                 </span>
                               </div>
                             </div>
                             <div className="text-right ml-4">
                               <div className="text-lg font-bold text-primary-600">
-                                {log.nutrition.calories}
+                                {log.nutrition?.calories || 0}
                               </div>
                               <div className="text-xs text-neutral-500">calories</div>
                             </div>
