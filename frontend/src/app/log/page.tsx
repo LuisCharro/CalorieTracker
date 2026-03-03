@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button, Input, Card, CardHeader, CardBody, Alert } from '../../shared/components';
+import { FoodCandidatePanel, type FoodCandidate } from '../../shared/components';
 import { Layout, Header, Navigation } from '../../shared/layout';
 import { useAuth } from '../../core/auth';
 import { logsService } from '../../core/api/services';
@@ -219,6 +220,23 @@ export default function LogPage() {
     setSuccess(false);
   };
 
+  const handleCandidateSelect = (food: FoodCandidate) => {
+    const newItem: FoodItem = {
+      id: Date.now().toString(),
+      foodName: food.food_name,
+      brandName: food.brand_name || '',
+      quantity: food.quantity,
+      unit: food.unit,
+      nutrition: food.nutrition ? {
+        calories: food.nutrition.calories || 0,
+        protein: food.nutrition.protein || 0,
+        carbohydrates: food.nutrition.carbohydrates || 0,
+        fat: food.nutrition.fat || 0,
+      } : null,
+    };
+    setFoodItems([...foodItems, newItem]);
+  };
+
   const totalCalories = foodItems.reduce((sum, item) => sum + (item.nutrition?.calories || 0), 0);
 
   return (
@@ -240,6 +258,20 @@ export default function LogPage() {
             <Alert type="success" className="mb-4">
               {successMessage} {loggedCount > 1 && `(Total: ${loggedCount} items this session)`}
             </Alert>
+          )}
+
+          {/* Smart Food Suggestions */}
+          {user?.id && (
+            <div className="mb-4">
+              <h4 className="text-sm font-medium text-neutral-700 mb-2 flex items-center gap-2">
+                <span>⚡</span> Quick Add
+              </h4>
+              <FoodCandidatePanel
+                userId={user.id}
+                mealType={selectedMeal}
+                onSelect={handleCandidateSelect}
+              />
+            </div>
           )}
 
           {/* Recent Foods Section */}

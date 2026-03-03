@@ -13,3 +13,6 @@ export { default as waterLogsService, WaterLogsService } from './water-logs.serv
 export type { WeightLog, CreateWeightLogRequest, UpdateWeightLogRequest, WeightLogsQuery, WeightProgress } from './weight-logs.service';
 export type { WaterLog, CreateWaterLogRequest, WaterProgress } from './water-logs.service';
 export type { DailySummary } from './logs.service';
+
+export { default as foodHistoryService, FoodHistoryService } from './food-history.service';
+export type { FoodHistoryItem, FoodSuggestion, SuggestionsResponse } from './food-history.service';

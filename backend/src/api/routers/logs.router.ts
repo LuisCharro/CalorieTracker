@@ -500,6 +500,27 @@ router.post('/', async (req, res) => {
     ]
   );
 
+  // Also save to user_food_history for intelligent suggestions
+  try {
+    await query(
+      `INSERT INTO user_food_history (user_id, food_name, brand_name, quantity, unit, nutrition, meal_type, logged_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        data.userId,
+        data.foodName,
+        data.brandName || null,
+        data.quantity,
+        data.unit,
+        JSON.stringify(data.nutrition),
+        data.mealType,
+        loggedAt,
+      ]
+    );
+  } catch (historyError) {
+    // Don't fail the main request if history save fails
+    console.error('Failed to save to food history:', historyError);
+  }
+
   res.status(201).json({
     success: true,
     data: result.rows[0],
@@ -689,6 +710,26 @@ router.post('/batch', async (req, res) => {
           createdAt,
         ]
       );
+
+      // Also save to user_food_history
+      try {
+        await query(
+          `INSERT INTO user_food_history (user_id, food_name, brand_name, quantity, unit, nutrition, meal_type, logged_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [
+            userId,
+            item.foodName,
+            item.brandName || null,
+            item.quantity,
+            item.unit,
+            JSON.stringify(item.nutrition),
+            mealType,
+            loggedAtValue,
+          ]
+        );
+      } catch (historyError) {
+        console.error('Failed to save batch item to food history:', historyError);
+      }
 
       const row = insertResult.rows[0];
       results.push({

@@ -36,3 +36,6 @@ export type { WaterChartProps, TimeRange as WaterTimeRange } from './WaterChart'
 
 export { CombinedChart } from './CombinedChart';
 export type { CombinedChartProps, TimeRange as CombinedTimeRange } from './CombinedChart';
+
+export { FoodCandidatePanel } from './FoodCandidatePanel';
+export type { FoodCandidatePanelProps, FoodCandidate } from './FoodCandidatePanel';
