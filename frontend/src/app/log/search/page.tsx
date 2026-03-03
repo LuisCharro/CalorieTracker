@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Button, Input, Card, CardBody } from '../../../shared/components';
+import { Button, Input, Card, CardBody, CardHeader } from '../../../shared/components';
 import { Layout, Header, Navigation } from '../../../shared/layout';
 import { useAuth } from '../../../core/auth';
 import { RouteGuard } from '../../../core/auth/routeGuard';
@@ -62,7 +62,7 @@ export default function LogSearchPage() {
         <div className="min-h-screen pb-24">
           <Header title="Search Food" />
 
-          <Card className="mb-6">
+          <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl mb-4">
             <CardBody>
               <div className="flex gap-2">
                 <div className="flex-1">
@@ -72,6 +72,7 @@ export default function LogSearchPage() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    className="px-4 py-3 rounded-xl"
                   />
                 </div>
                 <Button onClick={handleSearch} isLoading={isLoading}>
@@ -82,11 +83,13 @@ export default function LogSearchPage() {
           </Card>
 
           {results.length > 0 ? (
-            <Card>
-              <CardBody>
-                <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+            <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl mb-4">
+              <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/30 to-white border-b border-neutral-100">
+                <h3 className="text-lg font-semibold text-neutral-900">
                   Search Results
                 </h3>
+              </CardHeader>
+              <CardBody>
                 <div className="space-y-3">
                   {results.map((food) => (
                     <button

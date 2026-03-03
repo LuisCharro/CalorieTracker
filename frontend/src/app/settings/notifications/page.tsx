@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button, Card, CardBody, Alert, Input } from '../../../shared/components';
+import { Button, Card, CardBody, CardHeader, Alert, Input } from '../../../shared/components';
 import { Layout, Header } from '../../../shared/layout';
 import { useAuth } from '../../../core/auth';
 import { settingsService } from '../../../core/api/services';
@@ -92,12 +92,13 @@ export default function SettingsNotificationsPage() {
             </Alert>
           )}
 
-          <Card className="mb-6">
-            <CardBody>
-              <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+          <Card className="mb-6 shadow-lg shadow-neutral-200/50 border-0 rounded-2xl">
+            <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/30 to-white border-b border-neutral-100">
+              <h3 className="text-lg font-semibold text-neutral-900">
                 Email Notifications
               </h3>
-
+            </CardHeader>
+            <CardBody>
               <div className="space-y-4">
                 <div className="flex items-center justify-between py-3 border-b border-neutral-100">
                   <div>
@@ -178,11 +179,13 @@ export default function SettingsNotificationsPage() {
             </CardBody>
           </Card>
 
-          <Card className="mb-6">
-            <CardBody>
-              <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+          <Card className="mb-6 shadow-lg shadow-neutral-200/50 border-0 rounded-2xl">
+            <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/30 to-white border-b border-neutral-100">
+              <h3 className="text-lg font-semibold text-neutral-900">
                 Reminder Times
               </h3>
+            </CardHeader>
+            <CardBody>
               <p className="text-sm text-neutral-500 mb-4">
                 Set when you'd like to receive meal reminders
               </p>

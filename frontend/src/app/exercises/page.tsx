@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button, Card, CardBody, Alert, Input, EmptyState } from '../../shared/components';
+import { Button, Card, CardBody, CardHeader, Alert, Input, EmptyState } from '../../shared/components';
 import { Layout, Header } from '../../shared/layout';
 import { useAuth } from '../../core/auth';
 import exercisesService, { type Exercise, type ExerciseSummary } from '../../core/api/services/exercises.service';
@@ -148,7 +148,10 @@ export default function ExercisesPage() {
 
           {/* Summary Card */}
           {summary && (
-            <Card className="mb-6">
+            <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl mb-4">
+              <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/30 to-white border-b border-neutral-100">
+                <h2 className="text-lg font-semibold">Summary</h2>
+              </CardHeader>
               <CardBody>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
@@ -175,9 +178,11 @@ export default function ExercisesPage() {
           )}
 
           {/* Log New Exercise Form */}
-          <Card className="mb-6">
-            <CardBody>
-              <h2 className="text-lg font-semibold mb-4">Log Exercise</h2>
+          <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl mb-4">
+              <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/30 to-white border-b border-neutral-100">
+                <h2 className="text-lg font-semibold">Log Exercise</h2>
+              </CardHeader>
+              <CardBody>
               <form onSubmit={handleSubmit}>
                 <div className="mb-4">
                   <Input
@@ -223,9 +228,11 @@ export default function ExercisesPage() {
           </Card>
 
           {/* Exercise History */}
-          <Card>
+          <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl mb-4">
+            <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/30 to-white border-b border-neutral-100">
+              <h2 className="text-lg font-semibold">History</h2>
+            </CardHeader>
             <CardBody>
-              <h2 className="text-lg font-semibold mb-4">History</h2>
               {exercises.length === 0 ? (
                 <EmptyState
                   icon="🏃"

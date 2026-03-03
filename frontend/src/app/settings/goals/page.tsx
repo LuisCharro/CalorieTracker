@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button, Card, CardBody, Alert } from '../../../shared/components';
+import { Button, Card, CardBody, CardHeader, Alert } from '../../../shared/components';
 import { Layout, Header } from '../../../shared/layout';
 import { useAuth } from '../../../core/auth';
 import { goalsService } from '../../../core/api/services';
@@ -81,11 +81,13 @@ export default function SettingsGoalsPage() {
             </Alert>
           )}
 
-          <Card>
-            <CardBody>
-              <h3 className="text-lg font-semibold text-neutral-900 mb-6">
+          <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl">
+            <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/30 to-white border-b border-neutral-100">
+              <h3 className="text-lg font-semibold text-neutral-900">
                 Daily Calorie Goals
               </h3>
+            </CardHeader>
+            <CardBody>
 
               {goals.length === 0 ? (
                 <div className="text-center py-8">
@@ -134,11 +136,13 @@ export default function SettingsGoalsPage() {
             </CardBody>
           </Card>
 
-          <Card className="mt-6">
-            <CardBody>
-              <h3 className="text-lg font-semibold text-neutral-900 mb-4">
+          <Card className="mt-6 shadow-lg shadow-neutral-200/50 border-0 rounded-2xl">
+            <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/30 to-white border-b border-neutral-100">
+              <h3 className="text-lg font-semibold text-neutral-900">
                 Create New Goal
               </h3>
+            </CardHeader>
+            <CardBody>
               <p className="text-sm text-neutral-600 mb-4">
                 Create a new calorie goal to track your daily intake
               </p>

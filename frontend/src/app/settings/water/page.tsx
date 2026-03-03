@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button, Card, CardBody, Alert, Input, EmptyState } from '../../../shared/components';
+import { Button, Card, CardBody, CardHeader, Alert, Input, EmptyState } from '../../../shared/components';
 import { Layout, Header } from '../../../shared/layout';
 import { useAuth } from '../../../core/auth';
 import { RouteGuard } from '../../../core/auth/routeGuard';
@@ -159,7 +159,7 @@ export default function SettingsWaterPage() {
         
         <div className="p-4 space-y-6">
           {/* Today's Progress */}
-          <Card>
+          <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl">
             <CardBody>
               <div className="text-center">
                 <div className="text-4xl font-bold text-blue-600 mb-2">
@@ -184,9 +184,11 @@ export default function SettingsWaterPage() {
           </Card>
 
           {/* Quick Add Buttons */}
-          <Card>
+          <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl">
+            <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/30 to-white border-b border-neutral-100">
+              <h3 className="font-semibold">Quick Add</h3>
+            </CardHeader>
             <CardBody>
-              <h3 className="font-semibold mb-4">Quick Add</h3>
               <div className="grid grid-cols-4 gap-2 mb-4">
                 {quickAmounts.map((amount) => (
                   <Button
@@ -225,10 +227,11 @@ export default function SettingsWaterPage() {
           )}
 
           {/* Recent Logs */}
-          <Card>
+          <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl">
+            <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/30 to-white border-b border-neutral-100">
+              <h3 className="font-semibold">Recent Entries</h3>
+            </CardHeader>
             <CardBody>
-              <h3 className="font-semibold mb-4">Recent Entries</h3>
-              
               {isLoading ? (
                 <div className="text-center py-4 text-gray-500">Loading...</div>
               ) : waterLogs.length === 0 ? (

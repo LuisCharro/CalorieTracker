@@ -71,7 +71,7 @@ function ConfirmContent() {
       <div className="min-h-screen pb-24">
         <Header title="Confirm Entry" />
 
-        <Card className="mb-6">
+        <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl mb-4">
           <CardBody>
             <h3 className="text-lg font-semibold text-neutral-900 mb-4">
               {foodName}

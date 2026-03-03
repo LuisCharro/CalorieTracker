@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button, Card, CardBody, Alert, Input, EmptyState, Modal } from '../../../shared/components';
+import { Button, Card, CardBody, CardHeader, Alert, Input, EmptyState, Modal } from '../../../shared/components';
 import { Layout, Header } from '../../../shared/layout';
 import { useAuth } from '../../../core/auth';
 import { weightLogsService, type WeightLog, type WeightProgress } from '../../../core/api/services';
@@ -214,7 +214,7 @@ export default function SettingsWeightPage() {
 
           {/* Current Weight Card */}
           {latestWeight && (
-            <Card className="mb-6">
+            <Card className="mb-6 shadow-lg shadow-neutral-200/50 border-0 rounded-2xl">
               <CardBody>
                 <div className="text-center">
                   <p className="text-sm text-neutral-500 mb-1">Current Weight</p>
@@ -230,56 +230,60 @@ export default function SettingsWeightPage() {
           )}
 
           {/* Log New Weight Form */}
-          <Card className="mb-6">
-            <CardBody>
-              <h2 className="text-lg font-semibold mb-4">Log New Weight</h2>
-              <form onSubmit={handleSubmit}>
-                <div className="flex gap-3 mb-4">
-                  <div className="flex-1">
+          <Card className="mb-6 shadow-lg shadow-neutral-200/50 border-0 rounded-2xl">
+              <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/30 to-white border-b border-neutral-100">
+                <h2 className="text-lg font-semibold">Log New Weight</h2>
+              </CardHeader>
+              <CardBody>
+                <form onSubmit={handleSubmit}>
+                  <div className="flex gap-3 mb-4">
+                    <div className="flex-1">
+                      <Input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="500"
+                        placeholder="Weight"
+                        value={weightValue}
+                        onChange={(e) => setWeightValue(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <select
+                      value={weightUnit}
+                      onChange={(e) => setWeightUnit(e.target.value)}
+                      className="px-3 py-2 border border-neutral-300 rounded-lg bg-white"
+                    >
+                      <option value="kg">kg</option>
+                      <option value="lb">lb</option>
+                    </select>
+                  </div>
+                  <div className="mb-4">
                     <Input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="500"
-                      placeholder="Weight"
-                      value={weightValue}
-                      onChange={(e) => setWeightValue(e.target.value)}
-                      required
+                      type="text"
+                      placeholder="Notes (optional)"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
                     />
                   </div>
-                  <select
-                    value={weightUnit}
-                    onChange={(e) => setWeightUnit(e.target.value)}
-                    className="px-3 py-2 border border-neutral-300 rounded-lg bg-white"
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={isSaving || !weightValue}
                   >
-                    <option value="kg">kg</option>
-                    <option value="lb">lb</option>
-                  </select>
-                </div>
-                <div className="mb-4">
-                  <Input
-                    type="text"
-                    placeholder="Notes (optional)"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSaving || !weightValue}
-                >
-                  {isSaving ? 'Saving...' : 'Log Weight'}
-                </Button>
-              </form>
-            </CardBody>
-          </Card>
+                    {isSaving ? 'Saving...' : 'Log Weight'}
+                  </Button>
+                </form>
+              </CardBody>
+            </Card>
 
           {/* Weight Trend Chart */}
           {weightProgress?.hasData && (
-            <Card className="mb-6">
+            <Card className="mb-6 shadow-lg shadow-neutral-200/50 border-0 rounded-2xl">
+              <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/30 to-white border-b border-neutral-100">
+                <h2 className="text-lg font-semibold">Weight Trend</h2>
+              </CardHeader>
               <CardBody>
-                <h2 className="text-lg font-semibold mb-4">Weight Trend</h2>
                 <WeightTrendChart
                   data={timeRange === '7d' ? weightProgress.trend7d : weightProgress.trend30d}
                   timeRange={timeRange}
@@ -293,9 +297,11 @@ export default function SettingsWeightPage() {
           )}
 
           {/* Weight History */}
-          <Card>
+          <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl">
+            <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/30 to-white border-b border-neutral-100">
+              <h2 className="text-lg font-semibold">History</h2>
+            </CardHeader>
             <CardBody>
-              <h2 className="text-lg font-semibold mb-4">History</h2>
               {weightLogs.length === 0 ? (
                 <EmptyState
                   icon="⚖️"

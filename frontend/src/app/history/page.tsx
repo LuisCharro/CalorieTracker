@@ -98,7 +98,7 @@ export default function HistoryPage() {
           )}
 
           {/* Search and Filters */}
-          <Card className="mb-6">
+          <Card className="shadow-md shadow-neutral-200/50 border-0 rounded-2xl mb-6">
             <CardBody>
               <div className="space-y-4">
                 <Input
@@ -125,6 +125,7 @@ export default function HistoryPage() {
                       setSelectedDate('');
                     }}
                     size="sm"
+                    className="hover:bg-neutral-100 hover:border-neutral-400 transition-colors duration-200"
                   >
                     Clear Filters
                   </Button>
@@ -135,7 +136,7 @@ export default function HistoryPage() {
 
           {/* History List */}
           {sortedDates.length === 0 ? (
-            <Card>
+            <Card className="shadow-md shadow-neutral-200/50 border-0 rounded-2xl">
               <CardBody className="py-12 text-center">
                 <div className="text-6xl mb-4">📝</div>
                 <h3 className="text-xl font-semibold text-neutral-900 mb-2">
@@ -147,7 +148,11 @@ export default function HistoryPage() {
                     : 'Try adjusting your filters'}
                 </p>
                 {logs.length === 0 && (
-                  <Button onClick={() => window.location.href = '/log'} size="lg">
+                  <Button 
+                    onClick={() => window.location.href = '/log'} 
+                    size="lg"
+                    className="hover:bg-primary-700 hover:shadow-lg transition-all duration-200"
+                  >
                     Log Your First Meal
                   </Button>
                 )}
@@ -166,7 +171,10 @@ export default function HistoryPage() {
                   </h3>
                   <div className="space-y-3">
                     {groupedLogs[date].map((log) => (
-                      <Card key={log.id}>
+                      <Card 
+                        key={log.id} 
+                        className="shadow-md shadow-neutral-200/50 border-0 rounded-2xl mb-4 hover:shadow-lg hover:shadow-neutral-200/70 transition-all duration-200 cursor-pointer"
+                      >
                         <CardBody>
                           <div className="flex items-start justify-between">
                             <div className="flex-1">

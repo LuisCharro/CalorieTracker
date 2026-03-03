@@ -149,7 +149,7 @@ function EntryDetailContent() {
             </Alert>
           )}
 
-          <Card className="mb-6">
+          <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl mb-4">
             <CardBody>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-neutral-700 mb-2">

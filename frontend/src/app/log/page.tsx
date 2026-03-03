@@ -244,8 +244,8 @@ export default function LogPage() {
 
           {/* Recent Foods Section */}
           {recentFoods.length > 0 && (
-            <Card className="mb-4">
-              <CardHeader>
+            <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl mb-4">
+              <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/50 to-white border-b border-neutral-100">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold text-neutral-900">
                     Recent Foods
@@ -287,7 +287,7 @@ export default function LogPage() {
             </div>
           )}
 
-          <Card className="mb-4">
+          <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl mb-4">
             <CardBody>
               <h3 className="text-lg font-semibold text-neutral-900 mb-4">
                 Meal Details
@@ -333,8 +333,8 @@ export default function LogPage() {
             </CardBody>
           </Card>
 
-          <Card className="mb-4">
-            <CardHeader>
+          <Card className="shadow-lg shadow-neutral-200/50 border-0 rounded-2xl mb-4">
+            <CardHeader className="border-l-4 border-l-primary-500 bg-gradient-to-r from-primary-50/50 to-white border-b border-neutral-100">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-neutral-900">
                   Food Items
@@ -358,7 +358,7 @@ export default function LogPage() {
                       {foodItems.length > 1 && (
                         <button
                           onClick={() => removeItem(item.id)}
-                          className="text-danger-500 hover:text-danger-700 text-sm"
+                          className="text-danger-500 hover:text-danger-700 text-sm font-medium px-2 py-1 rounded-md hover:bg-danger-50 transition-all"
                         >
                           Remove
                         </button>
@@ -408,24 +408,22 @@ export default function LogPage() {
                       )}
 
                       {item.nutrition && (
-                        <div className="p-3 bg-white rounded-lg border border-neutral-100">
-                          <div className="grid grid-cols-4 gap-2 text-center text-sm">
-                            <div>
-                              <div className="font-semibold text-primary-600">{item.nutrition.calories}</div>
-                              <div className="text-xs text-neutral-500">cal</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold">{item.nutrition.protein}g</div>
-                              <div className="text-xs text-neutral-500">protein</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold">{item.nutrition.carbohydrates}g</div>
-                              <div className="text-xs text-neutral-500">carbs</div>
-                            </div>
-                            <div>
-                              <div className="font-semibold">{item.nutrition.fat}g</div>
-                              <div className="text-xs text-neutral-500">fat</div>
-                            </div>
+                        <div className="grid grid-cols-4 gap-2">
+                          <div className="bg-primary-50 rounded-xl p-3 text-center">
+                            <div className="font-bold text-primary-600 text-lg">{item.nutrition.calories}</div>
+                            <div className="text-xs text-primary-600/70 font-medium">cal</div>
+                          </div>
+                          <div className="bg-blue-50 rounded-xl p-3 text-center">
+                            <div className="font-bold text-blue-600 text-lg">{item.nutrition.protein}g</div>
+                            <div className="text-xs text-blue-600/70 font-medium">protein</div>
+                          </div>
+                          <div className="bg-amber-50 rounded-xl p-3 text-center">
+                            <div className="font-bold text-amber-600 text-lg">{item.nutrition.carbohydrates}g</div>
+                            <div className="text-xs text-amber-600/70 font-medium">carbs</div>
+                          </div>
+                          <div className="bg-rose-50 rounded-xl p-3 text-center">
+                            <div className="font-bold text-rose-600 text-lg">{item.nutrition.fat}g</div>
+                            <div className="text-xs text-rose-600/70 font-medium">fat</div>
                           </div>
                         </div>
                       )}
@@ -438,7 +436,7 @@ export default function LogPage() {
                 onClick={addItem}
                 variant="outline"
                 isFullWidth
-                className="mt-4"
+                className="mt-4 hover:bg-neutral-100 hover:border-neutral-300 transition-all duration-200"
               >
                 + Add Another Item
               </Button>
@@ -452,6 +450,7 @@ export default function LogPage() {
               isFullWidth
               size="lg"
               disabled={foodItems.every(item => !item.foodName.trim())}
+              className="hover:opacity-90 transition-opacity duration-200"
             >
               Log {foodItems.filter(i => i.foodName.trim()).length} Item{foodItems.filter(i => i.foodName.trim()).length !== 1 ? 's' : ''} ({Math.round(totalCalories)} cal)
             </Button>
@@ -462,6 +461,7 @@ export default function LogPage() {
                 variant="outline"
                 isFullWidth
                 disabled={foodItems.every(item => !item.foodName.trim()) || isLoading}
+                className="hover:bg-neutral-100 hover:border-neutral-300 transition-all duration-200"
               >
                 Log & Add More
               </Button>
@@ -470,6 +470,7 @@ export default function LogPage() {
                 variant="outline"
                 isFullWidth
                 disabled={isLoading}
+                className="hover:bg-neutral-100 hover:border-neutral-300 transition-all duration-200"
               >
                 Clear Form
               </Button>
