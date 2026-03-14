@@ -1,64 +1,33 @@
-# CalorieTracker Project Rules
+# CalorieTracker Umbrella Repo Rules
 
-## Overview
-CalorieTracker is a Next.js + Express/Node.js + PostgreSQL fitness tracking app.
+Start with:
 
-## Tech Stack
-- **Frontend**: Next.js 14 (App Router), React, TailwindCSS, TypeScript
-- **Backend**: Express/Node.js, TypeScript
-- **Database**: PostgreSQL (local), Supabase optional
-- **Auth**: Custom JWT-based auth
+- `$HOME/SKILLS/_shared/fullstack-repo-map.SKILL.md`
+- `$HOME/SKILLS/_shared/app-architecture-bootstrap.SKILL.md`
+- `$HOME/SKILLS/frontend/nextjs-feature-architecture-bootstrap.SKILL.md`
+- `$HOME/SKILLS/backend/typescript-backend-baseline.SKILL.md`
 
-## Project Structure
-```
-/Users/luis/Repos/CalorieTracker/
-├── backend/              # Express API server
-│   ├── src/
-│   │   ├── api/         # API routes
-│   │   ├── db/         # Database queries/pool
-│   │   └── ...
-├── frontend/             # Next.js frontend
-│   ├── src/
-│   │   ├── app/        # Next.js pages
-│   │   ├── core/       # API clients, services
-│   │   └── ...
-├── scripts/             # Dev/build scripts
-└── tests/              # Test files
-```
+Use this local rule only for umbrella-repo-specific context.
 
-## Development Scripts
-```bash
-# Backend
-cd backend && npm run dev      # Start on port 4000
+## Workspace role
 
-# Frontend  
-cd frontend && npm run dev    # Start on port 3000
-```
+`/Users/luis/Repos/CalorieTracker` is the canonical umbrella workspace.
 
-## API Endpoints
-- Base: `http://localhost:4000/api/`
-- Auth: `/api/auth/*`
-- Users: `/api/users/*`
-- Goals: `/api/goals/*`
-- Food Logs: `/api/food-logs/*`
-- Weight Logs: `/api/weight-logs/*`
+It owns:
 
-## Database
-- Local PostgreSQL: `postgres://postgres:postgres@localhost:5432/calorietracker`
-- Use `psql` for direct queries
+- `backend/`
+- `frontend/`
+- `plan/`
+- `scripts/`
 
-## Key Tables
-- `users` - User accounts
-- `goals` - Calorie/macro goals
-- `food_logs` - Daily food entries
-- `weight_logs` - Weight tracking entries
+## Local expectations
 
-## Code Standards
-- Follow general rules in `~/.kilocode/rules/General Coding.md`
-- Use TypeScript
-- Use TailwindCSS for frontend styling
-- Comments in English
-- Conventional commits
+- Backend default local port: `4000`
+- Frontend default local port: `3000`
+- Local stack entrypoint: `./scripts/start_calorietracker.sh`
 
-## UI Patterns
-See general UI/UX rules in global shared rules.
+## Guardrails
+
+- Keep workspace automation at the root, but keep app logic inside `backend/` and `frontend/`.
+- Do not turn `plan/` into a dumping ground for active code instructions.
+- If a rule is reusable across repos, move it to `$HOME/SKILLS` instead of growing this file.
