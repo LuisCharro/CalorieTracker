@@ -1,7 +1,18 @@
 # AGENTS.md
 
-This repo uses a short repo-local wrapper plus reusable global skills from
-`$HOME/SKILLS`.
+This repo uses repo-local copied shared skills under `./.agent-local/skills`.
+
+If those copied skills are missing, restore them before substantial work:
+
+```bash
+./agent/sync-shared-skills.sh
+```
+
+If auto-detect fails on this machine, pass the shared skills repo path once:
+
+```bash
+./agent/sync-shared-skills.sh /path/to/skills
+```
 
 ## Product identity
 
@@ -25,40 +36,40 @@ Before substantial work, read:
 - `frontend/README.md` when touching frontend behavior
 - `scripts/start_calorietracker.sh` when touching local run flow
 
-Then read only the relevant global skill and local doc for the task.
+Then read only the relevant shared skill and local doc for the task.
 
-## Global skills to use when relevant
+## Shared skills to use when relevant
 
 Start with:
 
-- `$HOME/SKILLS/_shared/repo-bootstrap-check.SKILL.md`
-- `$HOME/SKILLS/_shared/fullstack-repo-map.SKILL.md`
-- `$HOME/SKILLS/_shared/app-architecture-bootstrap.SKILL.md`
+- `./.agent-local/skills/_shared/repo-bootstrap-check.SKILL.md`
+- `./.agent-local/skills/_shared/fullstack-repo-map.SKILL.md`
+- `./.agent-local/skills/_shared/app-architecture-bootstrap.SKILL.md`
 
 Use these when the task matches:
 
 - Next.js App Router architecture:
-  `$HOME/SKILLS/frontend/nextjs-feature-architecture-bootstrap.SKILL.md`
+  `./.agent-local/skills/frontend/nextjs-feature-architecture-bootstrap.SKILL.md`
 - Next.js server/client boundaries:
-  `$HOME/SKILLS/frontend/nextjs-server-client-boundaries.SKILL.md`
+  `./.agent-local/skills/frontend/nextjs-server-client-boundaries.SKILL.md`
 - Next.js data fetching and caching:
-  `$HOME/SKILLS/frontend/nextjs-app-router-data-fetching.SKILL.md`
+  `./.agent-local/skills/frontend/nextjs-app-router-data-fetching.SKILL.md`
 - Frontend implementation baseline:
-  `$HOME/SKILLS/frontend/frontend-implementation-baseline.SKILL.md`
+  `./.agent-local/skills/frontend/frontend-implementation-baseline.SKILL.md`
 - Modern web stack review:
-  `$HOME/SKILLS/frontend/modern-web-stack-review.SKILL.md`
+  `./.agent-local/skills/frontend/modern-web-stack-review.SKILL.md`
 - TypeScript backend baseline:
-  `$HOME/SKILLS/backend/typescript-backend-baseline.SKILL.md`
+  `./.agent-local/skills/backend/typescript-backend-baseline.SKILL.md`
 - Express API review:
-  `$HOME/SKILLS/backend/express-typescript-api-review.SKILL.md`
+  `./.agent-local/skills/backend/express-typescript-api-review.SKILL.md`
 - Postgres schema review:
-  `$HOME/SKILLS/backend/postgres-app-schema-review.SKILL.md`
+  `./.agent-local/skills/backend/postgres-app-schema-review.SKILL.md`
 - Postgres migration safety:
-  `$HOME/SKILLS/backend/postgres-migration-review.SKILL.md`
+  `./.agent-local/skills/backend/postgres-migration-review.SKILL.md`
 - Repo-internal helper script placement:
-  `$HOME/SKILLS/_shared/repo-devtools-layout.SKILL.md`
+  `./.agent-local/skills/_shared/repo-devtools-layout.SKILL.md`
 
-If repo-local rules conflict with a global skill, prefer the repo-local rules.
+If repo-local rules conflict with a shared skill, prefer the repo-local rules.
 
 ## Repo-local guides
 
@@ -106,4 +117,4 @@ If you add a recurring workspace convention or local run workflow, update the re
 - `frontend/docs/`
 - `.kilocode/`
 
-Global reusable heuristics belong in `$HOME/SKILLS`, not here.
+Global reusable heuristics belong in the shared skills repo, not here.

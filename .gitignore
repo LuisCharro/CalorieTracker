@@ -35,3 +35,7 @@ docker-compose.override.yml
 
 # macOS soft links
 *.coverdata
+
+.agent-local/
+
+agent/.shared-skills-source
