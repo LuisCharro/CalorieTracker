@@ -4,12 +4,15 @@
 _shared/repo-bootstrap-check.SKILL.md
 _shared/fullstack-repo-map.SKILL.md
 _shared/app-architecture-bootstrap.SKILL.md
+_shared/references/review-skill-boundaries.md
 frontend/nextjs-feature-architecture-bootstrap.SKILL.md
 frontend/nextjs-server-client-boundaries.SKILL.md
 frontend/nextjs-app-router-data-fetching.SKILL.md
 frontend/frontend-implementation-baseline.SKILL.md
 frontend/modern-web-stack-review.SKILL.md
 backend/typescript-backend-baseline.SKILL.md
+backend/architecture-review.SKILL.md
+backend/security-review.SKILL.md
 backend/express-typescript-api-review.SKILL.md
 backend/postgres-app-schema-review.SKILL.md
 backend/postgres-migration-review.SKILL.md
