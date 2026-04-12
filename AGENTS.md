@@ -31,10 +31,7 @@ Treat this repo as the canonical root for local automation and cross-layer work.
 Before substantial work, read:
 
 - `README.md`
-- `plan/README.md`
-- `backend/README.md` when touching backend behavior
-- `frontend/README.md` when touching frontend behavior
-- `scripts/start_calorietracker.sh` when touching local run flow
+- `agent/README.md`
 
 Then read only the relevant shared skill and local doc for the task.
 
@@ -48,26 +45,12 @@ Start with:
 
 Use these when the task matches:
 
-- Next.js App Router architecture:
-  `./.agent-local/skills/frontend/nextjs-feature-architecture-bootstrap.SKILL.md`
-- Next.js server/client boundaries:
-  `./.agent-local/skills/frontend/nextjs-server-client-boundaries.SKILL.md`
-- Next.js data fetching and caching:
-  `./.agent-local/skills/frontend/nextjs-app-router-data-fetching.SKILL.md`
-- Frontend implementation baseline:
-  `./.agent-local/skills/frontend/frontend-implementation-baseline.SKILL.md`
-- Modern web stack review:
-  `./.agent-local/skills/frontend/modern-web-stack-review.SKILL.md`
-- TypeScript backend baseline:
-  `./.agent-local/skills/backend/typescript-backend-baseline.SKILL.md`
-- Express API review:
-  `./.agent-local/skills/backend/express-typescript-api-review.SKILL.md`
-- Postgres schema review:
-  `./.agent-local/skills/backend/postgres-app-schema-review.SKILL.md`
-- Postgres migration safety:
-  `./.agent-local/skills/backend/postgres-migration-review.SKILL.md`
-- Repo-internal helper script placement:
-  `./.agent-local/skills/_shared/repo-devtools-layout.SKILL.md`
+- `./.agent-local/skills/frontend/`
+  Use for Next.js architecture, UI implementation, review, and data-boundary work.
+- `./.agent-local/skills/backend/`
+  Use for TypeScript backend, Express/API, schema, and migration work.
+- `./.agent-local/skills/_shared/repo-devtools-layout.SKILL.md`
+  Use when placing repo-internal helper scripts or tooling wrappers.
 
 If repo-local rules conflict with a shared skill, prefer the repo-local rules.
 
@@ -75,6 +58,7 @@ If repo-local rules conflict with a shared skill, prefer the repo-local rules.
 
 Use these when the task is specifically about this workspace:
 
+- `agent/README.md`
 - `backend/docs/ARCHITECTURE.md`
 - `backend/docs/RUNBOOK_LOCAL.md`
 - `backend/docs/SECURITY_COMPLIANCE.md`
@@ -87,9 +71,7 @@ Use these when the task is specifically about this workspace:
 
 - Keep workspace-level changes separate from backend-only or frontend-only code changes.
 - Prefer feature ownership inside `backend/` and `frontend/` over growing generic shared folders.
-- Treat `plan/` as documentation and decision memory, not app runtime code.
-- Use `scripts/` for stable workspace entrypoints; do not scatter root-level helper scripts.
-- Keep the backend and frontend mirrors aligned with the umbrella-repo role instead of treating this repo as a loose dump.
+- Keep repo-specific operational detail in `agent/README.md` and local docs.
 
 ## Verification rule
 
@@ -112,6 +94,7 @@ For full local stack work, prefer:
 
 If you add a recurring workspace convention or local run workflow, update the relevant file in:
 
+- `agent/README.md`
 - `plan/`
 - `backend/docs/`
 - `frontend/docs/`
