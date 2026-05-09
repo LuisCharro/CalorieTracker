@@ -37,20 +37,33 @@ Then read only the relevant shared skill and local doc for the task.
 
 ## Shared skills to use when relevant
 
-Start with:
+### Available skills (`.agent-local/skills/`)
 
+**_shared:**
+- `repo-bootstrap-check.SKILL.md` — first-time repo assessment
+- `fullstack-repo-map.SKILL.md` — fullstack repo structure mapping
+- `app-architecture-bootstrap.SKILL.md` — architecture framing
+- `repo-devtools-layout.SKILL.md` — script/tooling placement
+
+**Frontend:**
+- `frontend-implementation-baseline.SKILL.md` — frontend implementation standards
+- `nextjs-app-router-data-fetching.SKILL.md` — Next.js data fetching patterns
+- `nextjs-feature-architecture-bootstrap.SKILL.md` — Next.js feature structure
+- `nextjs-server-client-boundaries.SKILL.md` — server/client component boundaries
+- `modern-web-stack-review.SKILL.md` — web stack review
+
+**Backend:**
+- `architecture-review.SKILL.md` — backend architecture review
+- `express-typescript-api-review.SKILL.md` — Express/TypeScript API review
+- `postgres-app-schema-review.SKILL.md` — Postgres schema review
+- `postgres-migration-review.SKILL.md` — migration safety review
+- `typescript-backend-baseline.SKILL.md` — TypeScript backend standards
+- `security-review.SKILL.md` — security review
+
+### Starter
 - `./.agent-local/skills/_shared/repo-bootstrap-check.SKILL.md`
 - `./.agent-local/skills/_shared/fullstack-repo-map.SKILL.md`
 - `./.agent-local/skills/_shared/app-architecture-bootstrap.SKILL.md`
-
-Use these when the task matches:
-
-- `./.agent-local/skills/frontend/`
-  Use for Next.js architecture, UI implementation, review, and data-boundary work.
-- `./.agent-local/skills/backend/`
-  Use for TypeScript backend, Express/API, schema, and migration work.
-- `./.agent-local/skills/_shared/repo-devtools-layout.SKILL.md`
-  Use when placing repo-internal helper scripts or tooling wrappers.
 
 If repo-local rules conflict with a shared skill, prefer the repo-local rules.
 
