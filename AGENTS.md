@@ -14,6 +14,10 @@ If auto-detect fails on this machine, pass the shared skills repo path once:
 ./agent/sync-shared-skills.sh /path/to/skills
 ```
 
+`agent/skills-manifest.txt` is the source of truth for which shared skills are
+copied into this repo. Resolve shared-skill references by exact local path under
+`./.agent-local/skills/`; do not use global machine paths in repo instructions.
+
 ## Product identity
 
 This repo is the `CalorieTracker` umbrella workspace.
@@ -35,6 +39,9 @@ Before substantial work, read:
 
 Then read only the relevant shared skill and local doc for the task.
 
+For implementation work, prefer `agent/README.md` for exact commands and this
+file for routing, boundaries, and repo-level rules.
+
 ## Shared skills to use when relevant
 
 ### Available skills (`.agent-local/skills/`)
@@ -43,6 +50,7 @@ Then read only the relevant shared skill and local doc for the task.
 - `repo-bootstrap-check.SKILL.md` — first-time repo assessment
 - `fullstack-repo-map.SKILL.md` — fullstack repo structure mapping
 - `app-architecture-bootstrap.SKILL.md` — architecture framing
+- `problem-shaping.SKILL.md` — problem framing before implementation
 - `repo-devtools-layout.SKILL.md` — script/tooling placement
 
 **Frontend:**
@@ -51,6 +59,9 @@ Then read only the relevant shared skill and local doc for the task.
 - `nextjs-feature-architecture-bootstrap.SKILL.md` — Next.js feature structure
 - `nextjs-server-client-boundaries.SKILL.md` — server/client component boundaries
 - `modern-web-stack-review.SKILL.md` — web stack review
+- `visual-distinctiveness-review.SKILL.md` — final visual distinctiveness review
+- `references/frontend-antipattern-vocabulary.md` — frontend anti-pattern vocabulary
+- `references/frontend-distinctiveness-checklist.md` — visual distinctiveness checklist
 
 **Backend:**
 - `architecture-review.SKILL.md` — backend architecture review
@@ -64,8 +75,67 @@ Then read only the relevant shared skill and local doc for the task.
 - `./.agent-local/skills/_shared/repo-bootstrap-check.SKILL.md`
 - `./.agent-local/skills/_shared/fullstack-repo-map.SKILL.md`
 - `./.agent-local/skills/_shared/app-architecture-bootstrap.SKILL.md`
+- `./.agent-local/skills/publish/google-stitch-workflow/SKILL.md` for Stitch-assisted UI work
 
 If repo-local rules conflict with a shared skill, prefer the repo-local rules.
+
+## Task routing
+
+- Cross-layer feature: start with `fullstack-repo-map`, then route separately to
+  backend and frontend skills.
+- Backend API/security/schema: use
+  `./.agent-local/skills/backend/architecture-review.SKILL.md`,
+  `./.agent-local/skills/backend/express-typescript-api-review.SKILL.md`, and
+  the relevant Postgres or security skill.
+- Frontend App Router/UI: use the Next.js frontend skills and
+  `./.agent-local/skills/frontend/visual-distinctiveness-review.SKILL.md`
+  before browser verification.
+- Stitch-assisted UI work: use
+  `./.agent-local/skills/publish/google-stitch-workflow/SKILL.md` before coding
+  screens.
+
+## Code map
+
+- Backend entrypoint is `backend/src/api/server.ts`; routers live in
+  `backend/src/api/routers/`.
+- Backend middleware lives in `backend/src/api/middleware/`; idempotency is
+  applied to most write-heavy routers in the server.
+- Backend jobs live in `backend/src/api/jobs/`; migrations and schema are under
+  `backend/src/db/`.
+- Backend tests live in `backend/src/__tests__/`, split into `unit/` and
+  `integration/`.
+- Frontend App Router pages live in `frontend/src/app/`.
+- Frontend API client and service layer live in `frontend/src/core/api/`;
+  contract mirrors live in `frontend/src/core/contracts/`.
+- Offline sync state lives in `frontend/src/core/contexts/OfflineQueueContext.tsx`
+  and `frontend/src/core/api/services/sync.service.ts`.
+- Feature docs live in `frontend/src/features/*/README.md`; shared UI lives in
+  `frontend/src/shared/`.
+- Browser scenarios live in `frontend/e2e/tests/` and repo-level scenario notes
+  live in `tests/e2e/`.
+
+For cross-layer API changes, update backend router/schema/types, frontend
+service/contracts, and matching tests in the same task.
+
+## Repo Working Guidance
+
+- Backend and frontend are independent npm projects. Run commands from the
+  correct subdirectory unless using a root wrapper.
+- Backend server applies `idempotencyMiddleware` to most write-heavy routers.
+  Preserve idempotency semantics when adding write endpoints.
+- Backend tests use Jest with ESM/ts-jest and a shared setup file at
+  `backend/src/__tests__/setup.ts`; add tests near the affected router/service.
+- Frontend tests are split between Jest component/service tests and Playwright
+  E2E under `frontend/e2e/`.
+- Playwright auto-detects LAN IP and can run in mock mode with
+  `E2E_USE_MOCK=true`; use mock mode for fast UI coverage when backend behavior
+  is not under test.
+- Frontend writes should go through `frontend/src/core/api/services/` and shared
+  contracts, not direct `fetch` calls from pages.
+- Offline queue behavior is a first-class product surface. Any change to logs,
+  sync, auth token storage, or API error handling needs offline/sync validation.
+- Do not edit generated/runtime folders such as `frontend/playwright-report/`,
+  `frontend/test-results/`, backend `dist/`, or TypeScript build info as source.
 
 ## Repo-local guides
 
@@ -101,6 +171,13 @@ For full local stack work, prefer:
 
 ```bash
 ./scripts/start_calorietracker.sh
+```
+
+For build-impacting changes, also run the relevant build:
+
+```bash
+cd backend && npm run build
+cd frontend && npm run build
 ```
 
 ## Documentation rule
